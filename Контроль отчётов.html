@@ -1,0 +1,1425 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; script-src 'sha256-N32vOvZPtybJ+3JKZ0x5IQBNfrmvQlBxA6vQnDsn/Lo=' 'sha256-guZUOxMtVG8axAjBSLu51Pbr4yG8pzBJHx4pkVndAyY=' 'sha256-PibttZZQ6PUr0vAHOK0+ved2ZB+EhBvlBjj4x2EkMNM=' 'sha256-ppg+GyWns87UFIIlRB/pHTzKP+MYL7A2NduscM5mMDg='; style-src 'sha256-43ZGDhK8I2SbNrNu79Yw55/l4Wg43IUhe+WfZuz9qW0='; img-src data:; base-uri 'none'; form-action 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#17142a">
+  <meta name="description" content="Проверка контрольных сроков, дат и выполненных пунктов в отчётах PowerPoint.">
+  <title>Контроль отчётов — проверка PPTX</title>
+  <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MCA0MCI+PHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iMTAiIGZpbGw9IiM2ZjUxZTkiLz48ZyBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIyLjMiPjxwYXRoIGQ9Ik0yMyA5SDExYTIgMiAwIDAgMC0yIDJ2MThhMiAyIDAgMCAwIDIgMmgxOGEyIDIgMCAwIDAgMi0ydi03Ii8+PHBhdGggZD0ibTE0IDIxIDUgNSAxMi0xM00xNCAxNGg4bS04IDMuNWgzIi8+PC9nPjwvc3ZnPg==" type="image/svg+xml">
+  <style>
+:root {
+  color-scheme: light;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  color: #222036;
+  background: #f7f7fb;
+  --muted: #65627a;
+  --purple: #6747dc;
+  --purple-dark: #5331c3;
+  --line: #e7e5ef;
+  --sidebar: #19162b;
+  --side-width: 232px;
+  --card-shadow: 0 2px 4px #27184905, 0 7px 18px #27184904;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; }
+button, input { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: wait; opacity: .64; }
+a { color: inherit; text-decoration: none; }
+button, a, input, summary { -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 3px solid #9375ff; outline-offset: 3px; }
+[hidden], .sprite { display: none !important; }
+.icon { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+h1, h2, h3, h4, p { margin: 0; }
+.skip { position: fixed; z-index: 10; left: 12px; top: 12px; transform: translateY(-150%); padding: 10px 16px; background: white; border-radius: 8px; }
+.skip:focus { transform: none; }
+
+.shell { display: grid; grid-template-columns: var(--side-width) minmax(0, 1fr); min-height: 100dvh; }
+.sidebar {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 16px 22px;
+  background: var(--sidebar);
+  color: #e5e0f5;
+}
+.brand { display: flex; align-items: center; gap: 11px; padding: 0 5px; white-space: nowrap; }
+.brand-mark { width: 39px; height: 39px; display: grid; place-items: center; border-radius: 11px; color: white; background: linear-gradient(155deg,#9c79ff,#6b49e4 72%); box-shadow: 0 6px 16px #7952ff48, inset 0 1px 0 #ffffff38; }
+.brand-mark .icon { width: 23px; height: 23px; }
+.brand strong { display: block; font-size: 15px; font-weight: 700; letter-spacing: -.18px; color: #fff; }
+.brand small, .sidebar-footer small { display: block; font-size: 11px; margin-top: 4px; color: #afabca; }
+.nav-group { margin-top: 54px; }
+.nav-group > p { padding-left: 11px; margin-bottom: 12px; font-size: 10px; font-weight: 700; letter-spacing: 1.1px; color: #a5a0bd; }
+.nav-group nav { display: grid; gap: 5px; }
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 10px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #c6c0d9;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 550;
+}
+.nav-link .icon { width: 17px; height: 17px; }
+.nav-link:hover { background: #ffffff0a; color: white; }
+.nav-link[aria-current] { border-color: #9072ed26; background: #30264c; color: #f4efff; }
+.nav-link[aria-current] > .icon:first-child { color: #bdaaff; }
+.nav-link .nav-arrow { display: none; width: 13px; height: 13px; margin-left: auto; color: #bdaaff; }
+.nav-link[aria-current] .nav-arrow { display: block; }
+.sidebar-footer { display: flex; align-items: center; gap: 9px; margin: auto 0 0; padding: 12px 9px; border-top: 1px solid #ffffff1c; }
+.sidebar-shield { display: grid; place-items: center; width: 33px; height: 33px; border-radius: 9px; color: #9ee1cd; background: #263039; }
+.sidebar-shield .icon { width: 18px; height: 18px; }
+.sidebar-footer strong { display: block; font-size: 11px; color: #e7e2f3; }
+
+.workspace { min-width: 0; }
+.topbar { display: flex; align-items: center; justify-content: space-between; min-height: 65px; padding: 0 clamp(24px, 3.2vw, 54px); border-bottom: 1px solid #ebe9f1; background: white; }
+.breadcrumb, .top-help { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; }
+.breadcrumb strong { color: #2c2940; font-weight: 650; }
+.breadcrumb .icon { width: 13px; height: 13px; color: #9a96ac; }
+.top-help { padding: 7px 9px; margin-right: -9px; border: 0; background: transparent; border-radius: 8px; }
+.top-help .icon { width: 17px; height: 17px; }
+.top-help:hover { background: #f0edfa; color: var(--purple-dark); }
+.main-content { max-width: 1380px; padding: 30px clamp(24px, 3.2vw, 54px) 50px; margin: 0 auto; }
+.hero {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  min-height: 205px;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid #4a3982;
+  border-radius: 20px;
+  padding: 31px 35px;
+  background: radial-gradient(ellipse at 82% 40%, #6647b1 0, transparent 60%), linear-gradient(110deg,#2c2256 0%,#382966 50%,#4c3686 100%);
+  color: white;
+  box-shadow: 0 7px 19px #31215a16;
+  scroll-margin-top: 20px;
+}
+.hero::after { content: ""; position: absolute; inset: 0 0 0 46%; z-index: -1; background: radial-gradient(circle, #e1d6ff 1px, transparent 1.5px) 0 0/17px 17px; mask-image: linear-gradient(100deg, transparent, #0008); opacity: .25; pointer-events: none; }
+.hero-copy { max-width: 570px; z-index: 1; }
+.hero-label { display: inline-flex; gap: 7px; align-items: center; color: #ece3ff; background: #e9e0ff18; border: 1px solid #e3d5ff35; border-radius: 999px; padding: 5px 9px; font-size: 10px; font-weight: 700; letter-spacing: .95px; }
+.hero-label .icon { width: 13px; height: 13px; }
+.hero h1 { margin: 10px 0 8px; font-size: clamp(34px, 3.7vw, 55px); line-height: 1.02; font-weight: 750; letter-spacing: -.048em; }
+.hero p { max-width: 485px; color: #e1d9f4; font-size: 15px; line-height: 1.6; }
+.hero-art { position: absolute; top: 50%; right: 5.5%; width: 279px; height: 194px; transform: translateY(-50%); color: #d8c8ff; pointer-events: none; }
+.orbit { position: absolute; border: 1px solid #cbb8ff35; border-radius: 50%; transform: rotate(-19deg); }
+.orbit-outer { inset: 17px 9px 16px 1px; }
+.orbit-inner { inset: 34px 32px 34px 28px; opacity: .65; }
+.art-back { position: absolute; left: 105px; top: 28px; width: 118px; height: 139px; border-radius: 15px; transform: rotate(13deg); border: 1px solid #dacdff64; background: linear-gradient(160deg,#d7c6ff48,#9c7bff16); }
+.art-page { position: absolute; left: 72px; top: 22px; width: 125px; height: 143px; display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 15px; transform: rotate(-10deg); border: 1px solid #f0e9ff8c; background: linear-gradient(140deg,#dac9ff,#a78bed); box-shadow: 2px 12px 24px #25164d55; color: #6342a5; }
+.art-header { display: flex; flex-wrap: wrap; column-gap: 5px; align-items: center; padding: 9px 7px; min-height: 48px; background: #ffffff67; border-radius: 7px; }
+.art-header .icon { width: 23px; height: 23px; }
+.art-header i, .art-line i { width: 43px; height: 4px; border-radius: 6px; background: #a386d7; }
+.art-header i:last-child { width: 27px; margin: -5px 0 0 28px; }
+.art-line { display: flex; gap: 6px; align-items: center; padding: 4px 7px; border-radius: 5px; background: #ffffff46; }
+.art-line .icon { width: 14px; height: 14px; }
+.art-line:last-child i { width: 32px; }
+.art-badge { display: grid; place-items: center; position: absolute; left: 170px; top: 118px; width: 48px; height: 48px; border-radius: 14px; border: 1px solid #ffffffb8; transform: rotate(9deg); color: #277a62; background: #a8eed6; box-shadow: 0 8px 20px #2e235e77; }
+.art-badge .icon { width: 26px; height: 26px; stroke-width: 2.15; }
+.art-cross { position: absolute; font-size: 24px; font-weight: 300; }
+.art-cross-one { left: 31px; top: 53px; }.art-cross-two { right: 19px; top: 42px; font-size: 18px; }
+.art-dot { position: absolute; bottom: 36px; right: 25px; width: 5px; height: 5px; border-radius: 50%; background: #dbc8ff; }
+
+.input-section { margin-top: 28px; }
+.section-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 15px; }
+.section-heading > div { min-width: 0; }
+.section-heading h2 { font-size: 23px; line-height: 1.2; font-weight: 740; letter-spacing: -.55px; }
+.section-heading p { margin-top: 5px; color: var(--muted); font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.button {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  padding: 8px 13px;
+  white-space: nowrap;
+  font-size: 13px;
+  line-height: 1.25;
+  font-weight: 680;
+  transition: background-color .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+.button .icon { width: 17px; height: 17px; }
+.button-quiet { color: var(--purple-dark); background: #fff; border-color: #e5ddf9; box-shadow: var(--card-shadow); }
+.button-quiet:hover { background: #f2ecff; border-color: #cdbaf6; }
+.button-primary { color: white; background: var(--purple); border-color: #5e40d0; box-shadow: 0 3px 9px #6747dc36; padding-inline: 14px; }
+.button-primary:hover { background: var(--purple-dark); }
+.button-primary .run-arrow { margin-left: 7px; opacity: .8; }
+.button-plain { color: var(--muted); background: transparent; }
+.button-plain:hover { background: #eeebf6; color: #332c50; }
+.inputs-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 15px; }
+.input-card { min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: white; box-shadow: var(--card-shadow); }
+.card-heading { display: flex; gap: 11px; align-items: center; margin-bottom: 14px; }
+.card-heading h3 { font-size: 15px; font-weight: 730; line-height: 1.2; }
+.card-heading p { margin-top: 4px; color: var(--muted); font-size: 11.5px; line-height: 1.3; }
+.tile { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 10px; }
+.tile-purple { color: #6243cd; background: #eee8ff; }
+.tile-blue { color: #4263c1; background: #eaf0ff; }
+.tile-teal { color: #1f826c; background: #e5f7f0; }
+.tile-orange { color: #a05209; background: #fff1dc; }
+.tile-red { color: #b34251; background: #fcebed; }
+.file-input { display: none; }
+.dropzone, .file-chip {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  width: 100%;
+  min-height: 68px;
+  padding: 9px 10px;
+  border-radius: 9px;
+  text-align: left;
+}
+.dropzone { color: #5b42b2; border: 1px dashed #cfc4ea; background: #faf8ff; }
+.dropzone:hover, .dragging .dropzone, .dragging .file-chip { border-color: var(--purple); background: #eee7ff; }
+.dropzone strong, .file-chip strong { display: block; font-size: 12px; line-height: 1.25; font-weight: 700; }
+.dropzone small, .file-chip small { display: block; color: var(--muted); margin-top: 3px; font-size: 11px; }
+.dropzone .drop-icon { width: 17px; height: 17px; }
+.format { margin-left: auto; color: #6b588e; background: #f0ebfa; padding: 4px 5px; border-radius: 4px; font-size: 9px; font-weight: 750; letter-spacing: .3px; }
+.file-chip { color: #5b42b2; border: 1px solid #dfd5f6; background: #faf8ff; }
+.file-chip > span { min-width: 0; flex: 1; }
+.file-chip strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.icon-button { flex: none; display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border: 0; border-radius: 7px; color: var(--muted); background: transparent; }
+.icon-button:hover { color: #3f285f; background: #ebe3fb; }
+.icon-button .icon { width: 17px; height: 17px; }
+.input-error { margin-top: 8px; color: #a12b42; font-size: 12px; line-height: 1.4; }
+.skip-file { margin-top: 5px; padding: 3px 0; border: 0; color: var(--purple-dark); background: transparent; text-decoration: underline; font-size: 12px; }
+.has-error { border-color: #ecb9c1; }
+.date-wrap { position: relative; }
+.date-wrap input {
+  width: 100%;
+  min-height: 41px;
+  padding: 6px 9px;
+  border: 1px solid #e5e1ed;
+  border-radius: 8px;
+  color: #2c2841;
+  background: #fbfafc;
+  font-size: 13px;
+  font-weight: 650;
+}
+.date-wrap input::-webkit-calendar-picker-indicator { opacity: .63; cursor: pointer; }
+.date-placeholder { position: absolute; inset: 1px 34px 1px 1px; display: flex; align-items: center; padding: 0 8px; pointer-events: none; border-radius: 8px; color: #625e77; background: #fbfafc; font-size: 13px; }
+.has-value .date-placeholder, .date-wrap:focus-within .date-placeholder { display: none; }
+.date-hint { margin-top: 7px; color: var(--muted); font-size: 11px; line-height: 1.4; }
+.form-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 13px; }
+.form-actions > p { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color: var(--muted); font-size: 11px; }
+.form-actions > p .icon { width: 15px; height: 15px; color: #817b99; }
+.action-buttons { display: flex; align-items: center; gap: 5px; }
+.form-status { margin-top: 10px; color: var(--muted); text-align: right; font-size: 12px; }
+.form-status.error { color: #a12b42; }
+.is-busy .run-arrow { animation: nudge .8s alternate infinite; }
+@keyframes nudge { to { transform: translateX(4px); } }
+
+.results-section { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--line); scroll-margin-top: 18px; }
+.empty-state { display: flex; min-height: 100px; align-items: center; justify-content: center; gap: 13px; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: white; box-shadow: var(--card-shadow); }
+.empty-icon { position: relative; display: grid; place-items: center; flex: none; width: 47px; height: 47px; border-radius: 13px; color: #775ac8; background: #f0ebfc; }
+.empty-icon .icon { width: 23px; height: 23px; }
+.empty-icon i { position: absolute; top: 9px; right: 9px; width: 7px; height: 7px; border: 1px solid #f0ebfc; border-radius: 50%; background: #a78cea; }
+.empty-state strong { font-size: 14px; font-weight: 710; }
+.empty-state p { margin-top: 4px; color: var(--muted); font-size: 12px; line-height: 1.45; }
+.empty-success { margin-top: 13px; }
+.empty-success .empty-icon { background: #e5f7f0; color: #23795e; }
+.stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 11px; }
+.stat { display: flex; gap: 10px; align-items: center; min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: white; box-shadow: var(--card-shadow); }
+.stat .tile { width: 37px; height: 37px; }
+.stat .icon { width: 18px; height: 18px; }
+.stat-content { min-width: 0; }
+.stat-content strong { display: block; font-size: 22px; line-height: 1.05; font-variant-numeric: tabular-nums; letter-spacing: -.5px; }
+.stat-content span { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; line-height: 1.25; }
+.notice { display: flex; gap: 8px; align-items: flex-start; margin-top: 10px; padding: 9px 11px; border: 1px solid #e8e3f4; border-radius: 8px; color: #5e5576; background: #f4f0fb; font-size: 12px; line-height: 1.5; }
+.notice .icon { width: 17px; height: 17px; color: #7559ae; }
+.results-toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; margin-top: 17px; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.filter { display: inline-flex; gap: 6px; align-items: center; min-height: 34px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 7px; background: white; color: #544d67; font-size: 11px; font-weight: 650; }
+.filter span { padding: 2px 5px; border-radius: 4px; background: #edeaf4; color: #635976; font-size: 10px; font-variant-numeric: tabular-nums; }
+.filter:hover, .filter[aria-pressed="true"] { border-color: #d1c0f7; background: #efe8ff; color: var(--purple-dark); }
+.filter[aria-pressed="true"] span { background: #e2d6fc; color: var(--purple-dark); }
+.search-box { display: flex; align-items: center; gap: 7px; min-height: 34px; padding: 0 8px; border: 1px solid var(--line); border-radius: 7px; color: #665c7e; background: white; }
+.search-box:focus-within { outline: 2px solid #9375ff; }
+.search-box .icon { width: 15px; height: 15px; }
+.search-box input { width: 160px; min-width: 0; border: 0; padding: 5px 0; outline: 0; background: transparent; color: #2e2740; font-size: 12px; }
+.findings-count { margin: 11px 0 7px; color: var(--muted); font-size: 11px; }
+.slide-group { margin-bottom: 11px; overflow: hidden; border: 1px solid var(--line); border-radius: 11px; background: white; box-shadow: var(--card-shadow); }
+.slide-heading { display: flex; gap: 9px; align-items: center; padding: 10px 13px; border-bottom: 1px solid #eeeaf3; background: #fcfbfe; font-size: 13px; line-height: 1.35; }
+.slide-number { flex: none; padding: 3px 6px; border-radius: 5px; color: #5e42b0; background: #f0eafd; font-size: 10px; font-weight: 750; }
+.slide-title { min-width: 0; overflow-wrap: anywhere; }
+.finding { display: flex; align-items: flex-start; gap: 11px; padding: 12px 13px; }
+.finding + .finding { border-top: 1px solid #f0edf5; }
+.finding .tile { width: 32px; height: 32px; border-radius: 8px; }
+.finding .tile .icon { width: 17px; height: 17px; }
+.finding-content { flex: 1; min-width: 0; }
+.finding-heading { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; margin: 1px 0 6px; }
+.finding-heading h4 { font-size: 13px; font-weight: 720; }
+.finding-subject { color: #6943bd; font-size: 12px; overflow-wrap: anywhere; }
+.source { color: var(--muted); font-size: 11px; }
+.excerpt { padding: 7px 9px; border: 1px solid #efecf5; border-radius: 6px; color: #484155; background: #faf9fc; font-size: 12px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+mark { padding: 1px 2px; border-radius: 3px; font-weight: 720; }
+.mark-orange { background: #ffe7b6; color: #7b4207; }
+.mark-purple { background: #ebdfff; color: #542ba1; }
+.mark-red { background: #fbdde4; color: #9e2540; }
+.finding-note { margin: 6px 0 0; color: var(--muted); font-size: 11px; }
+.evidence { margin-top: 6px; color: #6047a0; font-size: 11px; }
+.evidence summary { cursor: pointer; width: fit-content; line-height: 1.6; }
+.evidence .icon { width: 12px; height: 12px; margin: 0 4px; vertical-align: -2px; }
+.evidence-text { margin-top: 5px; padding: 6px 8px; border-left: 2px solid #daccf7; color: #514764; background: #f9f6fd; overflow-wrap: anywhere; }
+
+dialog { width: min(540px, calc(100% - 30px)); max-height: 90dvh; padding: 0; border: 1px solid var(--line); border-radius: 17px; color: #272139; box-shadow: 0 18px 80px #22183150; }
+dialog::backdrop { background: #17132675; }
+.dialog-heading { display: flex; gap: 11px; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--line); }
+.dialog-heading h2 { flex: 1; font-size: 19px; }
+.dialog-body { display: grid; gap: 6px; padding: 15px 20px; }
+.dialog-body h3 { font-size: 14px; }
+.dialog-body p { margin-bottom: 7px; color: #575168; font-size: 13px; line-height: 1.55; }
+.dialog-actions { display: flex; justify-content: flex-end; padding: 0 20px 16px; }
+
+@media (max-width: 1180px) {
+  :root { --side-width: 201px; }
+  .sidebar { padding-inline: 12px; }
+  .hero-art { right: 2%; }
+  .hero-copy { max-width: 72%; }
+  .input-card { padding: 13px; }
+  .format { display: none; }
+}
+@media (max-width: 930px) {
+  :root { --side-width: 62px; }
+  .sidebar { padding-inline: 8px; }
+  .brand { justify-content: center; padding: 0; }
+  .brand > span + span, .nav-group > p, .nav-link span, .nav-link[aria-current] .nav-arrow, .sidebar-footer > span + span { display: none; }
+  .nav-link { justify-content: center; padding: 0; }
+  .sidebar-footer { justify-content: center; padding-inline: 0; }
+  .hero-art { transform: translateY(-50%) scale(.88); transform-origin: right center; }
+}
+@media (max-width: 700px) {
+  .shell { display: block; }
+  .sidebar { display: none; }
+  .topbar { min-height: 53px; padding-inline: 16px; }
+  .main-content { padding: 18px 16px 30px; }
+  .hero { min-height: 171px; padding: 22px 19px; border-radius: 15px; }
+  .hero-art { right: -14px; opacity: .7; transform: translateY(-50%) scale(.65); }
+  .hero h1 { font-size: 36px; }
+  .hero p { font-size: 13px; }
+  .inputs-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+  #previous-card { grid-column: 1/-1; }
+  .stats-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; }
+}
+@media (max-width: 460px) {
+  .hero-art { display: none; }
+  .hero-copy { max-width: 100%; }
+  .inputs-grid { grid-template-columns: minmax(0,1fr); }
+  .section-heading { align-items: flex-start; flex-wrap: wrap; }
+  .section-heading h2 { font-size: 21px; }
+  .form-actions { align-items: flex-end; flex-wrap: wrap; }
+  .action-buttons { margin-left: auto; }
+  .format { display: inline; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+  <svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="logo" viewBox="0 0 24 24"><path d="M5 13.5 9.5 18 19 7M5 7h7M5 10.5h3"/><path d="M16 3.5H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V13"/></symbol>
+    <symbol id="dashboard" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.4"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.4"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.4"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.4"/></symbol>
+    <symbol id="results-icon" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></symbol>
+    <symbol id="help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.4 2.4 0 0 1 4.8.4c0 1.7-2.4 1.9-2.4 3.6m0 3h.01"/></symbol>
+    <symbol id="shield" viewBox="0 0 24 24"><path d="M12 22s7-3 7-9.5V6l-7-3-7 3v6.5C5 19 12 22 12 22Z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="file" viewBox="0 0 24 24"><path d="M13.5 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9.5ZM13 3v5a2 2 0 0 0 2 2h5M8 13.5h8M8 17h5"/></symbol>
+    <symbol id="history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 1 2.3 6M3 6v6h6m3-5v5l3 2"/></symbol>
+    <symbol id="calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18m-13 4h1m3 0h1m3 0h1m-9 3h1m3 0h1"/></symbol>
+    <symbol id="upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></symbol>
+    <symbol id="spark" viewBox="0 0 24 24"><path d="m12 2 1.9 6.1L20 10l-6.1 1.9L12 18l-1.9-6.1L4 10l6.1-1.9L12 2ZM20 15v6m-3-3h6M4 2v4M2 4h4"/></symbol>
+    <symbol id="arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
+    <symbol id="check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+    <symbol id="search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="5.5"/><path d="m15 15 5 5"/></symbol>
+    <symbol id="download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/></symbol>
+    <symbol id="warning" viewBox="0 0 24 24"><path d="M10.3 4.5a2 2 0 0 1 3.4 0l7.1 12.2a2 2 0 0 1-1.7 3H4.9a2 2 0 0 1-1.7-3ZM12 9v4m0 3.5h.01"/></symbol>
+    <symbol id="repeat" viewBox="0 0 24 24"><path d="M19 10V7a2 2 0 0 0-2-2H5m3-3L5 5l3 3m-3 6v3a2 2 0 0 0 2 2h12m-3-3 3 3-3 3"/></symbol>
+    <symbol id="slides" viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="14" height="14" rx="2"/><path d="M16 3.5H5.5a2 2 0 0 0-2 2V16M10 11h7m-7 4h5"/></symbol>
+    <symbol id="external" viewBox="0 0 24 24"><path d="M6 18 18 6M8 6h10v10"/></symbol>
+    <symbol id="info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></symbol>
+  </svg>
+  <a class="skip" href="#main">К основному содержанию</a>
+  <div class="shell">
+    <aside class="sidebar" aria-label="Меню">
+      <a class="brand" href="#check" aria-label="Контроль отчётов">
+        <span class="brand-mark"><svg class="icon"><use href="#logo"/></svg></span>
+        <span><strong>Контроль отчётов</strong><small>Рабочее пространство</small></span>
+      </a>
+      <div class="nav-group">
+        <p>ИНСТРУМЕНТЫ</p>
+        <nav aria-label="Разделы">
+          <a class="nav-link" href="#check" aria-label="Проверка PPTX" aria-current="location"><svg class="icon"><use href="#dashboard"/></svg><span>Проверка PPTX</span><svg class="icon nav-arrow"><use href="#chevron"/></svg></a>
+          <a class="nav-link" href="#results" aria-label="Результаты"><svg class="icon"><use href="#results-icon"/></svg><span>Результаты</span><svg class="icon nav-arrow"><use href="#chevron"/></svg></a>
+          <button class="nav-link" type="button" data-help aria-label="Правила проверки"><svg class="icon"><use href="#help"/></svg><span>Правила проверки</span></button>
+        </nav>
+      </div>
+      <div class="sidebar-footer">
+        <span class="sidebar-shield"><svg class="icon"><use href="#shield"/></svg></span>
+        <span><strong>Локальная обработка</strong><small>Файлы остаются у вас</small></span>
+      </div>
+    </aside>
+
+    <div class="workspace">
+      <header class="topbar">
+        <div class="breadcrumb"><span>Инструменты</span><svg class="icon"><use href="#chevron"/></svg><strong>Проверка PPTX</strong></div>
+        <button class="top-help" type="button" data-help><svg class="icon"><use href="#help"/></svg><span>Справка</span></button>
+      </header>
+      <main id="main" class="main-content">
+        <section id="check" class="hero" aria-labelledby="page-title">
+          <div class="hero-copy">
+            <span class="hero-label"><svg class="icon"><use href="#file"/></svg> ОТЧЁТЫ POWERPOINT</span>
+            <h1 id="page-title">Проверка отчётов</h1>
+            <p>Найдите даты позже отчётной и пункты, которые уже были выполнены в предыдущем отчёте.</p>
+          </div>
+          <div class="hero-art" aria-hidden="true">
+            <div class="orbit orbit-outer"></div><div class="orbit orbit-inner"></div>
+            <span class="art-cross art-cross-one">+</span><span class="art-cross art-cross-two">+</span><span class="art-dot"></span>
+            <div class="art-back"></div>
+            <div class="art-page">
+              <span class="art-header"><svg class="icon"><use href="#file"/></svg><i></i><i></i></span>
+              <span class="art-line"><svg class="icon"><use href="#check"/></svg><i></i></span>
+              <span class="art-line"><svg class="icon"><use href="#calendar"/></svg><i></i></span>
+            </div>
+            <div class="art-badge"><svg class="icon"><use href="#check"/></svg></div>
+          </div>
+        </section>
+
+        <section class="input-section" aria-labelledby="inputs-title">
+          <div class="section-heading">
+            <div><h2 id="inputs-title">Исходные данные</h2><p>Загрузите текущий отчёт и укажите дату проверки.</p></div>
+            <button id="demo" class="button button-quiet" type="button"><svg class="icon"><use href="#spark"/></svg> Попробовать пример</button>
+          </div>
+          <form id="review-form">
+            <div class="inputs-grid">
+              <div class="input-card" id="current-card">
+                <div class="card-heading">
+                  <span class="tile tile-purple"><svg class="icon"><use href="#file"/></svg></span>
+                  <div><h3 id="current-title">Текущий отчёт</h3><p>Презентация для проверки</p></div>
+                </div>
+                <input class="file-input" type="file" id="current-file" accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation" aria-labelledby="current-title">
+                <button type="button" class="dropzone" id="current-drop" aria-label="Выбрать текущий отчёт">
+                  <svg class="icon drop-icon"><use href="#upload"/></svg>
+                  <span><strong>Выберите файл</strong><small>или перетащите сюда</small></span>
+                  <span class="format">PPTX</span>
+                </button>
+                <div class="file-chip" id="current-chip" hidden>
+                  <svg class="icon"><use href="#file"/></svg><span><strong id="current-name"></strong><small id="current-meta"></small></span>
+                  <button class="icon-button" type="button" id="current-remove" aria-label="Удалить текущий отчёт"><svg class="icon"><use href="#close"/></svg></button>
+                </div>
+                <p class="input-error" id="current-error" role="alert" hidden></p>
+              </div>
+
+              <div class="input-card" id="date-card">
+                <div class="card-heading">
+                  <span class="tile tile-blue"><svg class="icon"><use href="#calendar"/></svg></span>
+                  <div><h3><label for="report-date">Дата отчёта</label></h3><p>Граница для проверки дат</p></div>
+                </div>
+                <div class="date-wrap">
+                  <input type="date" id="report-date" min="1900-01-01" max="9999-12-31" required aria-describedby="date-hint">
+                  <span class="date-placeholder" aria-hidden="true">Выберите дату</span>
+                </div>
+                <p class="date-hint" id="date-hint">Даты позже указанной будут подсвечены</p>
+              </div>
+
+              <div class="input-card" id="previous-card">
+                <div class="card-heading">
+                  <span class="tile tile-teal"><svg class="icon"><use href="#history"/></svg></span>
+                  <div><h3 id="previous-title">Прошлый отчёт</h3><p>По желанию · для сравнения</p></div>
+                </div>
+                <input class="file-input" type="file" id="previous-file" accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation" aria-labelledby="previous-title">
+                <button type="button" class="dropzone" id="previous-drop" aria-label="Выбрать прошлый отчёт">
+                  <svg class="icon drop-icon"><use href="#upload"/></svg>
+                  <span><strong>Выберите файл</strong><small>или перетащите сюда</small></span>
+                  <span class="format">PPTX</span>
+                </button>
+                <div class="file-chip" id="previous-chip" hidden>
+                  <svg class="icon"><use href="#file"/></svg><span><strong id="previous-name"></strong><small id="previous-meta"></small></span>
+                  <button class="icon-button" type="button" id="previous-remove" aria-label="Удалить прошлый отчёт"><svg class="icon"><use href="#close"/></svg></button>
+                </div>
+                <p class="input-error" id="previous-error" role="alert" hidden></p>
+                <button id="previous-skip" class="skip-file" type="button" hidden>Пропустить сравнение</button>
+              </div>
+            </div>
+            <div class="form-actions">
+              <p><svg class="icon"><use href="#info"/></svg> До 50 МБ на файл <span aria-hidden="true">·</span> Только .pptx</p>
+              <div class="action-buttons">
+                <button id="reset" type="button" class="button button-plain" hidden>Сбросить</button>
+                <button id="run" type="submit" class="button button-primary"><svg class="icon"><use href="#search"/></svg> Проверить отчёт <svg class="icon run-arrow"><use href="#arrow"/></svg></button>
+              </div>
+            </div>
+            <p id="form-status" class="form-status" role="status" hidden></p>
+          </form>
+        </section>
+
+        <section id="results" class="results-section" aria-labelledby="results-title">
+          <div class="section-heading">
+            <div><h2 id="results-title" tabindex="-1">Результаты проверки</h2><p id="results-caption">Замечания с номерами слайдов и фрагментами отчёта.</p></div>
+            <button id="export" class="button button-quiet" type="button" hidden><svg class="icon"><use href="#download"/></svg> Скачать CSV</button>
+          </div>
+          <div class="empty-state" id="initial-results">
+            <span class="empty-icon"><svg class="icon"><use href="#results-icon"/></svg><i></i></span>
+            <div><strong>Замечания появятся здесь</strong><p>Загрузите презентацию или запустите проверку на примере.</p></div>
+          </div>
+          <div id="report-results" hidden></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <dialog id="help-dialog" aria-labelledby="help-title">
+    <div class="dialog-heading"><span class="tile tile-purple"><svg class="icon"><use href="#help"/></svg></span><h2 id="help-title">Правила проверки</h2><form method="dialog"><button class="icon-button" aria-label="Закрыть справку"><svg class="icon"><use href="#close"/></svg></button></form></div>
+    <div class="dialog-body">
+      <h3>Даты</h3>
+      <p>Проверяются даты в тексте слайдов и таблицах. Поддерживаются форматы 12.11.2026, 12/11/26, 2026-11-12 и 12 ноября 2026. Для дат без года рядом с «КС», «Срок» или «Дата», в столбце сроков или с названием месяца используется год отчёта. Двузначный год считается годом XXI века.</p>
+      <h3>Выполненные пункты</h3>
+      <p>Загрузите прошлый отчёт, чтобы найти повторные пункты со статусом «Выполнено», «Завершено», «Исполнено» или «Закрыто». Сравнение идёт по ID либо по точному названию без учёта регистра и знаков препинания. Для таблиц желательно использовать отдельные столбцы «ID», «Задача» и «Статус».</p>
+      <h3>Область проверки</h3>
+      <p>Инструмент читает редактируемый текст слайдов и таблиц. Текст на изображениях, в диаграммах, SmartArt и заметках PowerPoint требует ручной проверки.</p>
+    </div>
+    <form class="dialog-actions" method="dialog"><button class="button button-primary">Готово</button></form>
+  </dialog>
+<script>
+(function () {
+  'use strict';
+
+  const decoder = new TextDecoder('utf-8', { fatal: true });
+  const parser = new DOMParser();
+  const maxXmlSize = 8 * 1024 * 1024;
+  const maxTotalXmlSize = 48 * 1024 * 1024;
+
+  function archiveError() {
+    return new Error('Не удалось прочитать структуру PPTX. Откройте файл в PowerPoint и сохраните его заново.');
+  }
+
+  function indexArchive(buffer) {
+    const view = new DataView(buffer);
+    let end = view.byteLength - 22;
+    for (; end >= Math.max(0, view.byteLength - 65557); end--) {
+      if (view.getUint32(end, true) === 0x06054b50 && end + 22 + view.getUint16(end + 20, true) === view.byteLength) break;
+    }
+    if (end < Math.max(0, view.byteLength - 65557)) throw archiveError();
+    const count = view.getUint16(end + 10, true);
+    const start = view.getUint32(end + 16, true);
+    const directoryEnd = start + view.getUint32(end + 12, true);
+    if (view.getUint32(end + 4, true) || view.getUint16(end + 8, true) !== count || directoryEnd > end) throw archiveError();
+
+    const entries = new Map();
+    let offset = start;
+    for (let i = 0; i < count; i++) {
+      if (offset + 46 > directoryEnd || view.getUint32(offset, true) !== 0x02014b50) throw archiveError();
+      const nameSize = view.getUint16(offset + 28, true);
+      const next = offset + 46 + nameSize + view.getUint16(offset + 30, true) + view.getUint16(offset + 32, true);
+      if (next > directoryEnd) throw archiveError();
+      const name = new TextDecoder().decode(new Uint8Array(buffer, offset + 46, nameSize));
+      entries.set(name, {
+        flags: view.getUint16(offset + 8, true),
+        method: view.getUint16(offset + 10, true),
+        compressedSize: view.getUint32(offset + 20, true),
+        size: view.getUint32(offset + 24, true),
+        offset: view.getUint32(offset + 42, true)
+      });
+      offset = next;
+    }
+
+    let totalSize = 0;
+    return async function readXml(name) {
+      const entry = entries.get(name);
+      if (!entry || entry.flags & 1 || entry.offset + 30 > start || view.getUint32(entry.offset, true) !== 0x04034b50) throw archiveError();
+      totalSize += entry.size;
+      if (entry.size > maxXmlSize || totalSize > maxTotalXmlSize) throw new Error('В презентации слишком много текстовых данных. Разделите её на несколько файлов.');
+      const dataOffset = entry.offset + 30 + view.getUint16(entry.offset + 26, true) + view.getUint16(entry.offset + 28, true);
+      if (dataOffset + entry.compressedSize > start) throw archiveError();
+      const compressed = new Uint8Array(buffer, dataOffset, entry.compressedSize);
+      let data = compressed;
+      if (entry.method === 8) {
+        let inflater;
+        try {
+          inflater = new DecompressionStream('deflate-raw');
+        } catch {
+          throw new Error('Для открытия PPTX нужен актуальный Chrome, Edge, Firefox или Safari.');
+        }
+        const reader = new Blob([compressed]).stream().pipeThrough(inflater).getReader();
+        data = new Uint8Array(entry.size);
+        let written = 0;
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          if (written + value.length > data.length) {
+            await reader.cancel();
+            throw archiveError();
+          }
+          data.set(value, written);
+          written += value.length;
+        }
+        if (written !== data.length) throw archiveError();
+      } else if (entry.method !== 0 || data.length !== entry.size) {
+        throw archiveError();
+      }
+      let xml;
+      try {
+        const utf16 = data[0] === 0xff && data[1] === 0xfe ? 'utf-16le' : data[0] === 0xfe && data[1] === 0xff ? 'utf-16be' : '';
+        xml = (utf16 ? new TextDecoder(utf16, { fatal: true }) : decoder).decode(data);
+      } catch {
+        throw archiveError();
+      }
+      if (/<!DOCTYPE/i.test(xml)) throw archiveError();
+      const doc = parser.parseFromString(xml, 'application/xml');
+      if (doc.getElementsByTagNameNS('*', 'parsererror').length) throw archiveError();
+      return doc.documentElement;
+    };
+  }
+
+  function children(node, name) {
+    return Array.from(node?.children || []).filter(child => child.localName === name);
+  }
+
+  function first(node, name) {
+    return children(node, name)[0];
+  }
+
+  function resolvePart(base, target) {
+    const url = new URL(target, 'https://pptx.invalid/' + base);
+    if (url.origin !== 'https://pptx.invalid' || url.search || url.hash) throw archiveError();
+    return decodeURIComponent(url.pathname.slice(1));
+  }
+
+  function readParagraph(node) {
+    return Array.from(node.children, child => {
+      if (child.localName === 'br') return '\n';
+      if (child.localName === 'tab') return '\t';
+      if (['r', 'fld'].includes(child.localName)) return first(child, 't')?.textContent || '';
+      return '';
+    }).join('').trim();
+  }
+
+  function readText(body) {
+    return children(body, 'p').flatMap(p => readParagraph(p).split('\n')).map(text => text.trim()).filter(Boolean);
+  }
+
+  function makeSlide(root, number) {
+    const tree = first(first(root, 'cSld'), 'spTree');
+    if (root.localName !== 'sld' || !tree) throw archiveError();
+    const blocks = [];
+    const tables = [];
+    let title = '';
+    let titleBlock;
+
+    function visit(container) {
+      for (const shape of container.children) {
+        if (shape.localName === 'grpSp' || shape.localName === 'Choice' || shape.localName === 'Fallback') {
+          visit(shape);
+        } else if (shape.localName === 'AlternateContent') {
+          const branch = first(shape, 'Choice') || first(shape, 'Fallback');
+          if (branch) visit(branch);
+        } else if (shape.localName === 'sp' || shape.localName === 'cxnSp') {
+          const lines = readText(first(shape, 'txBody'));
+          if (!lines.length) continue;
+          const properties = first(first(shape, 'nvSpPr'), 'nvPr');
+          const type = first(properties, 'ph')?.getAttribute('type');
+          const block = { lines };
+          if (!title && (type === 'title' || type === 'ctrTitle')) {
+            title = lines.join(' ');
+            titleBlock = block;
+          }
+          blocks.push(block);
+        } else if (shape.localName === 'graphicFrame') {
+          const table = first(first(first(shape, 'graphic'), 'graphicData'), 'tbl');
+          if (!table) continue;
+          const rows = children(table, 'tr').map(row => children(row, 'tc').map(cell => {
+            const merged = ['hMerge', 'vMerge'].some(key => ['1', 'true'].includes(cell.getAttribute(key)));
+            return merged ? '' : readText(first(cell, 'txBody')).join(' ');
+          }));
+          tables.push(rows);
+        }
+      }
+    }
+
+    visit(tree);
+    if (!title && blocks.length && blocks[0].lines.length === 1 && blocks[0].lines[0].length <= 100) {
+      title = blocks[0].lines[0];
+    }
+    return { number, title, blocks, tables, titleBlock };
+  }
+
+  async function read(file) {
+    if (!/\.pptx$/i.test(file.name)) throw new Error('Выберите файл с расширением .pptx.');
+    if (file.size > 50 * 1024 * 1024) throw new Error('Максимальный размер одного файла — 50 МБ.');
+    try {
+      const readXml = indexArchive(await file.arrayBuffer());
+      const packageRelationships = await readXml('_rels/.rels');
+      const office = children(packageRelationships, 'Relationship').find(rel => rel.getAttribute('Type')?.endsWith('/officeDocument'));
+      if (!office || office.getAttribute('TargetMode') === 'External') throw archiveError();
+      const part = resolvePart('', office.getAttribute('Target'));
+      const presentation = await readXml(part);
+      if (presentation.localName !== 'presentation') throw archiveError();
+      const order = children(first(presentation, 'sldIdLst'), 'sldId');
+      if (!order.length) throw new Error('В презентации нет слайдов.');
+      if (order.length > 1000) throw new Error('Можно проверить до 1000 слайдов за один раз.');
+      const separator = part.lastIndexOf('/') + 1;
+      const relationships = await readXml(part.slice(0, separator) + '_rels/' + part.slice(separator) + '.rels');
+      const slidesById = new Map(children(relationships, 'Relationship')
+        .filter(rel => rel.getAttribute('Type')?.endsWith('/slide') && rel.getAttribute('TargetMode') !== 'External')
+        .map(rel => [rel.getAttribute('Id'), rel.getAttribute('Target')]));
+      const slides = [];
+      for (const [index, entry] of order.entries()) {
+        const relId = Array.from(entry.attributes).find(attr => attr.localName === 'id' && attr.namespaceURI?.endsWith('/relationships'));
+        const target = slidesById.get(relId?.value);
+        if (!target) throw archiveError();
+        slides.push(makeSlide(await readXml(resolvePart(part, target)), index + 1));
+      }
+      return slides;
+    } catch (error) {
+      if (error instanceof RangeError || error instanceof TypeError || error instanceof DOMException) throw archiveError();
+      throw error;
+    }
+  }
+
+  window.Pptx = { read };
+})();
+</script>
+<script>
+(function () {
+  'use strict';
+
+  const monthNames = [
+    'января|январь|янв', 'февраля|февраль|фев', 'марта|март|мар',
+    'апреля|апрель|апр', 'мая|май', 'июня|июнь|июн', 'июля|июль|июл',
+    'августа|август|авг', 'сентября|сентябрь|сент|сен', 'октября|октябрь|окт',
+    'ноября|ноябрь|ноя', 'декабря|декабрь|дек'
+  ];
+  const months = new Map(monthNames.flatMap((names, i) => names.split('|').map(name => [name, i + 1])));
+  const writtenMonth = [...months.keys()].join('|');
+  const datePattern = new RegExp(
+    '(?<![\\p{L}\\p{N}])(?:' +
+    '(?<isoYear>\\d{4})(?<isoSep>[-./])(?<isoMonth>\\d{1,2})\\k<isoSep>(?<isoDay>\\d{1,2})' +
+    '|(?<day>\\d{1,2})(?<sep>[./-])(?<month>\\d{1,2})\\k<sep>(?<year>\\d{4}|\\d{2})' +
+    '|(?<wordDay>\\d{1,2})\\s+(?<wordMonth>' + writtenMonth + ')(?![а-яё])(?:\\.?\\s+(?<wordYear>\\d{4}|\\d{2})(?!\\d))?' +
+    ')(?!\\d|[./-]\\d)', 'giu'
+  );
+  const shortDatePattern = /(?<![\p{L}\p{N}./-])(\d{1,2})[./](\d{1,2})(?!\d|[./-]\d)/gu;
+  const dateContext = /(?:^|[^\p{L}])(?:кс|срок(?:и|а)?|дата(?:ы)?|дедлайн)(?=$|[^\p{L}])/iu;
+  const idHeader = /^(?:id|идентификатор|код|№|n\s*o\.?|номер|№\s*(?:п\/п|пункта|задачи))$/iu;
+  const titleHeader = /^(?:наименование(?:\s+(?:мероприятия|пункта|задачи|работы))?|описание|мероприятие|пункт|задача|вопрос|действие|работа|тема|название|содержание|поручение)$/iu;
+  const statusHeader = /^(?:статус(?:\s+(?:исполнения|выполнения))?|состояние|ход\s+выполнения)$/iu;
+  const deadlineHeader = /^(?:кс|контрольный\s+срок(?:\s*\(кс\))?|срок(?:\s+выполнения)?|дата(?:\s+выполнения)?|дедлайн)$/iu;
+  const statusLabel = /^(?:статус(?:\s+(?:исполнения|выполнения))?|состояние)\s*[:–—-]\s*/iu;
+  const completedStatus = /^(?:выполнено|выполнен[аы]?|завершено|заверш[её]н[аы]?|исполнено|исполнен[аы]?|закрыто|закрыт[аы]?)(?=$|[\s.,;:–—()])/iu;
+  const otherStatus = /^(?:не\s+выполнено|в\s+работе|в\s+процессе|выполняется|открыто|планируется|просрочено|отложено|отменено|на\s+согласовании|не\s+начато)(?=$|[\s.,;:–—()])/iu;
+  const metadata = /^(?:(?:контрольный\s+)?срок|кс|дата|ответственный|исполнитель|примечание|комментарий|прогресс|статус)\s*[:–—]/iu;
+  const idLabel = /^(?:id|код|№|идентификатор|номер(?:\s+(?:пункта|задачи))?)\s*[:№]?\s*([\p{L}\d][\p{L}\d._/-]*)(?=$|\s)/iu;
+  const itemLabel = /^(?:наименование|пункт|задача|мероприятие|поручение|описание)\s*[:–—]\s*/iu;
+
+  function dateValue(year, month, day) {
+    if (year < 1900 || year > 9999 || month < 1 || month > 12 || day < 1 || day > 31) return null;
+    const date = new Date(Date.UTC(year, month - 1, day));
+    return date.getUTCMonth() === month - 1 && date.getUTCDate() === day ? year * 10000 + month * 100 + day : null;
+  }
+
+  function expandYear(value, fallback) {
+    if (!value) return fallback;
+    return value.length === 2 ? 2000 + Number(value) : Number(value);
+  }
+
+  function extractDates(text, year, allowShort = false) {
+    const dates = [];
+    for (const match of text.matchAll(datePattern)) {
+      const group = match.groups;
+      const explicitYear = group.isoYear || group.year || group.wordYear;
+      const month = Number(group.isoMonth || group.month) || months.get(group.wordMonth?.toLocaleLowerCase('ru'));
+      const day = Number(group.isoDay || group.day || group.wordDay);
+      dates.push({ raw: match[0], start: match.index, value: dateValue(expandYear(explicitYear, year), month || 0, day), assumed: !explicitYear });
+    }
+    if (allowShort || dateContext.test(text)) {
+      for (const match of text.matchAll(shortDatePattern)) {
+        dates.push({ raw: match[0], start: match.index, value: dateValue(year, Number(match[2]), Number(match[1])), assumed: true });
+      }
+    }
+    return dates.sort((a, b) => a.start - b.start);
+  }
+
+  function clean(text) {
+    return text.normalize('NFKC').toLocaleLowerCase('ru').replaceAll('ё', 'е').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+  }
+
+  function status(text) {
+    const value = text.trim().replace(/^[✓✔✅☑●•]\s*/u, '').replace(statusLabel, '');
+    if (completedStatus.test(value)) {
+      const rest = value.replace(completedStatus, '').trim();
+      if (/^[\p{L}]/u.test(rest) && !/^\d+\s/u.test(rest)) return null;
+      return 'done';
+    }
+    if (otherStatus.test(value)) return 'open';
+    return null;
+  }
+
+  function stripTitle(text) {
+    return text.trim().replace(/^[•●▪]\s*/u, '').replace(itemLabel, '')
+      .replace(/^(?:№\s*)?\d{1,4}[.)]\s+/u, '').trim();
+  }
+
+  function makeItem(rawTitle, id, state, slide, source, excerpt, row) {
+    const title = stripTitle(rawTitle || '');
+    const key = clean(title);
+    if (!id && (!/\p{L}/u.test(key) || key.length < 3)) return null;
+    return { title: title || id, key, id: id ? id.normalize('NFKC').toLocaleUpperCase('ru').trim() : '', state, slide, source, excerpt, row };
+  }
+
+  function headerFor(row) {
+    const names = row.map(text => text.trim().replace(/[:.]+$/, ''));
+    const id = names.findIndex(name => idHeader.test(name));
+    const title = names.findIndex(name => titleHeader.test(name));
+    const state = names.findIndex(name => statusHeader.test(name));
+    const deadlines = names.map(name => deadlineHeader.test(name));
+    if (state === -1 && !(title !== -1 && (id !== -1 || deadlines.some(Boolean)))) return null;
+    return { id, numbered: id >= 0 && !/^(?:id|идентификатор|код)$/iu.test(names[id]), title, state, deadlines };
+  }
+
+  function guessTitle(cells, excluded, year) {
+    return cells.filter((text, i) => i !== excluded && text.length >= 3 && /\p{L}/u.test(text)
+      && !status(text) && !metadata.test(text) && !extractDates(text, year).some(date => date.raw === text))
+      .sort((a, b) => b.length - a.length)[0] || '';
+  }
+
+  function scanSlide(slide, limit, year) {
+    const items = [];
+    const findings = [];
+    let datesChecked = 0;
+    let textFound = false;
+
+    function checkText(text, source, shortDates) {
+      if (!text) return;
+      textFound = true;
+      for (const date of extractDates(text, year, shortDates)) {
+        datesChecked++;
+        if (date.value !== null && date.value <= limit) continue;
+        findings.push({
+          type: date.value === null ? 'invalid' : 'date',
+          slide: slide.number, slideTitle: slide.title, source, excerpt: text,
+          subject: date.raw, start: date.start, assumed: date.assumed
+        });
+      }
+    }
+
+    for (const [tableIndex, rows] of slide.tables.entries()) {
+      let header;
+      for (const [rowIndex, cells] of rows.entries()) {
+        const source = 'Таблица ' + (tableIndex + 1) + ' · строка ' + (rowIndex + 1);
+        for (const [index, text] of cells.entries()) {
+          checkText(text, source + ' · столбец ' + (index + 1), header?.deadlines[index]);
+        }
+        const detectedHeader = headerFor(cells);
+        if (detectedHeader) {
+          header = detectedHeader;
+          continue;
+        }
+        const stateIndex = header?.state >= 0 ? header.state : cells.findIndex(cell => status(cell));
+        const state = status(cells[stateIndex] || '');
+        const idText = header?.id >= 0 ? cells[header.id] || '' : '';
+        const id = header?.numbered && /^\d+\.?$/.test(idText) ? '' : idText;
+        const title = header?.title >= 0 ? cells[header.title] : guessTitle(cells, stateIndex, year);
+        const item = makeItem(title, id, state, slide.number, source, cells.filter(Boolean).join(' · '), true);
+        if (item) items.push(item);
+      }
+    }
+
+    let standaloneTitle = '';
+    let standaloneId = '';
+    let itemCount = 0;
+    for (const [index, block] of slide.blocks.entries()) {
+      const source = block === slide.titleBlock ? 'Заголовок слайда' : 'Текстовый блок ' + (index + 1);
+      for (const [i, line] of block.lines.entries()) {
+        checkText(line, source, i > 0 && dateContext.test(block.lines[i - 1]) && /^[\d./\s]+$/u.test(line));
+      }
+      if (block === slide.titleBlock) continue;
+
+      let title = standaloneTitle;
+      let id = standaloneId;
+      for (const [lineIndex, line] of block.lines.entries()) {
+        const inline = line.match(/^(.+?)(?:\s+[-–—]\s+|\s*[|·;]\s*|\t+)(.+)$/u)
+          || line.match(/^(.+?)\s+\(([^()]+)\)$/u);
+        const inlineState = inline && status(inline[2]);
+        const state = inlineState || status(line);
+        if (state) {
+          const name = inlineState ? inline[1] : title || slide.title;
+          const item = makeItem(name, id, state, slide.number, source,
+            inlineState ? line : [name, line].filter(Boolean).join(' · '), false);
+          if (item) {
+            items.push(item);
+            itemCount++;
+          }
+          title = '';
+          id = '';
+          continue;
+        }
+        const identifier = line.match(idLabel);
+        if (identifier) {
+          id = identifier[1];
+          const afterId = line.slice(identifier[0].length).replace(/^\s*[-–—:]\s*/u, '').trim();
+          if (afterId) title = afterId;
+        } else if (!metadata.test(line) && !extractDates(line, year).some(date => date.raw === line)) {
+          if (!title || lineIndex === 0 || itemLabel.test(line) || /^(?:[•●▪]|\d+[.)]\s)/u.test(line)) title = line;
+          if (!id) {
+            const candidate = makeItem(line, '', null, slide.number, source, line, false);
+            if (candidate) items.push(candidate);
+          }
+        }
+      }
+      standaloneTitle = title;
+      standaloneId = id;
+    }
+    if (!itemCount && !slide.tables.length && slide.title) {
+      const item = makeItem(slide.title, standaloneId, null, slide.number, 'Заголовок слайда', slide.title, false);
+      if (item) items.push(item);
+    }
+    return { items, findings, datesChecked, textFound };
+  }
+
+  function indexItems(items, field) {
+    const index = new Map();
+    for (const item of items) {
+      if (!item[field]) continue;
+      const list = index.get(item[field]) || [];
+      list.push(item);
+      index.set(item[field], list);
+    }
+    return index;
+  }
+
+  function findPrevious(item, byId, byTitle) {
+    const idMatch = item.id && byId.get(item.id);
+    if (idMatch) return idMatch.every(candidate => candidate.state === 'done') ? { item: idMatch[0], method: 'по ID' } : null;
+    const matches = (byTitle.get(item.key) || []).filter(candidate => !candidate.id || !item.id);
+    const identities = new Set(matches.map(candidate => candidate.id).filter(Boolean));
+    if (matches.length && identities.size <= 1 && matches.every(candidate => candidate.state === 'done')) {
+      return { item: matches[0], method: 'по названию' };
+    }
+    return null;
+  }
+
+  function analyze(current, previous, reportDate) {
+    const [year, month, day] = reportDate.split('-').map(Number);
+    const limit = dateValue(year, month, day);
+    if (limit === null) throw new Error('Укажите корректную дату отчёта.');
+    const checked = current.map(slide => scanSlide(slide, limit, year));
+    const history = previous?.flatMap(slide => scanSlide(slide, limit, year).items).filter(item => item.state || item.row) || [];
+    const byId = indexItems(history, 'id');
+    const byTitle = indexItems(history, 'key');
+    const findings = checked.flatMap(slide => slide.findings);
+    for (const [index, slide] of checked.entries()) {
+      const repeated = new Set();
+      const identifiedTitles = new Set(slide.items.filter(item => item.id && item.key).map(item => item.key));
+      for (const item of slide.items) {
+        if (!item.id && !item.row && identifiedTitles.has(item.key)) continue;
+        const match = findPrevious(item, byId, byTitle);
+        const identity = item.id || item.key;
+        if (!match || repeated.has(identity)) continue;
+        repeated.add(identity);
+        findings.push({
+          type: 'repeat', slide: item.slide, slideTitle: current[index].title, subject: item.title,
+          source: item.source, excerpt: item.excerpt, previous: match.item, method: match.method
+        });
+      }
+    }
+    findings.sort((a, b) => a.slide - b.slide);
+    return {
+      findings,
+      slides: current.length,
+      datesChecked: checked.reduce((count, slide) => count + slide.datesChecked, 0),
+      textless: current.filter((slide, i) => !checked[i].textFound).map(slide => slide.number),
+      completed: history.filter(item => item.state === 'done').length,
+      previousSlides: previous?.length || 0
+    };
+  }
+
+  window.ReportReview = { analyze };
+})();
+</script>
+<script>
+(function () {
+  'use strict';
+
+  const headings = ['ID', 'Мероприятие', 'Статус', 'КС'];
+
+  function slide(number, title, lines, rows = []) {
+    return {
+      number, title,
+      blocks: lines.map(line => ({ lines: [line] })),
+      tables: rows.length ? [[headings, ...rows]] : []
+    };
+  }
+
+  window.ReviewDemo = {
+    date: '2026-11-12',
+    current: {
+      name: 'Еженедельный отчёт — 12.11.2026.pptx',
+      slides: [
+        slide(1, 'Ход реализации проекта', ['Отчёт по состоянию на 12.11.2026']),
+        slide(2, 'Контрольные мероприятия', [], [
+          ['ИТ-104', 'Настройка резервного копирования', 'В работе', '18.11.2026'],
+          ['ИТ-112', 'Согласование доступа к порталу', 'Выполнено', '05.11.2026'],
+          ['ИТ-121', 'Проверка журналов событий', 'На согласовании', '12.11.2026']
+        ]),
+        slide(3, 'Следующие шаги', ['Тестирование интеграции запланировано на 20 ноября 2026 года.']),
+        slide(4, 'Сроки подготовки', ['Дата отправки материалов: 31.11.2026'])
+      ]
+    },
+    previous: {
+      name: 'Еженедельный отчёт — 05.11.2026.pptx',
+      slides: [
+        slide(1, 'Ход реализации проекта', ['Отчёт по состоянию на 05.11.2026']),
+        slide(2, 'Контрольные мероприятия', [], [
+          ['ИТ-104', 'Настройка резервного копирования', 'В работе', '18.11.2026'],
+          ['ИТ-112', 'Согласование доступа к порталу', 'Выполнено', '05.11.2026'],
+          ['ИТ-117', 'Подготовка инструкции', 'Выполнено', '04.11.2026']
+        ])
+      ]
+    }
+  };
+})();
+</script>
+<script>
+(function () {
+  'use strict';
+
+  const $ = id => document.getElementById(id);
+  const inputDate = $('report-date');
+  const state = { current: null, previous: null, result: null, filter: 'all', query: '', version: 0, busy: false };
+  const dateFormatter = new Intl.DateTimeFormat('ru-RU', { dateStyle: 'short', timeZone: 'UTC' });
+  const numberFormatter = new Intl.NumberFormat('ru-RU');
+  const labels = {
+    date: { title: 'Дата позже отчётной', filter: 'Поздние даты', icon: 'calendar', color: 'orange' },
+    repeat: { title: 'Пункт уже был выполнен', filter: 'Выполненные пункты', icon: 'repeat', color: 'purple' },
+    invalid: { title: 'Некорректная дата', filter: 'Некорректные даты', icon: 'warning', color: 'red' }
+  };
+
+  function element(tag, className, value) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (value !== undefined) node.textContent = value;
+    return node;
+  }
+
+  function icon(name) {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'icon');
+    svg.setAttribute('aria-hidden', 'true');
+    const use = document.createElementNS(svg.namespaceURI, 'use');
+    use.setAttribute('href', '#' + name);
+    svg.append(use);
+    return svg;
+  }
+
+  function formatDate(value) {
+    return dateFormatter.format(new Date(value + 'T00:00:00Z'));
+  }
+
+  function fileSize(bytes) {
+    if (bytes < 1024) return bytes + ' Б';
+    if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + ' КБ';
+    return (bytes / (1024 * 1024)).toFixed(1).replace('.', ',') + ' МБ';
+  }
+
+  function fileError(key, message) {
+    const field = $(key + '-error');
+    field.textContent = message;
+    field.hidden = !message;
+    $(key + '-card').classList.toggle('has-error', Boolean(message));
+    if (key === 'previous') $('previous-skip').hidden = !message;
+  }
+
+  function renderFile(key) {
+    const source = state[key];
+    $(key + '-drop').hidden = Boolean(source);
+    $(key + '-chip').hidden = !source;
+    $(key + '-name').textContent = source?.name || '';
+    $(key + '-name').title = source?.name || '';
+    $(key + '-meta').textContent = source?.file ? fileSize(source.file.size) : 'Демонстрационный отчёт';
+  }
+
+  function renderControls() {
+    $('date-card').classList.toggle('has-value', Boolean(inputDate.value));
+    $('reset').hidden = !(state.current || state.previous || inputDate.value);
+    $('run').disabled = state.busy;
+    $('run').classList.toggle('is-busy', state.busy);
+    $('demo').disabled = state.busy;
+  }
+
+  function message(value, isError = false) {
+    const node = $('form-status');
+    node.hidden = !value;
+    node.textContent = value;
+    node.classList.toggle('error', isError);
+  }
+
+  function updateInput() {
+    state.version++;
+    state.busy = false;
+    state.result = null;
+    renderControls();
+    renderResults();
+    message('');
+  }
+
+  function setFile(key, file, error = '') {
+    if (file && [state.current, state.previous].some(source => source && !source.file)) {
+      const other = key === 'current' ? 'previous' : 'current';
+      if (state[other] && !state[other].file) {
+        state[other] = null;
+        fileError(other, '');
+        renderFile(other);
+      }
+      if (inputDate.value === ReviewDemo.date) inputDate.value = '';
+    }
+    state[key] = null;
+    $(key + '-file').value = '';
+    if (file) {
+      if (!/\.pptx$/i.test(file.name)) error = 'Выберите файл формата .pptx.';
+      else if (file.size > 50 * 1024 * 1024) error = 'Размер файла превышает 50 МБ.';
+      else state[key] = { file, name: file.name };
+    }
+    fileError(key, error);
+    renderFile(key);
+    updateInput();
+  }
+
+  for (const key of ['current', 'previous']) {
+    const card = $(key + '-card');
+    const picker = $(key + '-file');
+    $(key + '-drop').addEventListener('click', () => picker.click());
+    $(key + '-remove').addEventListener('click', () => {
+      setFile(key, null);
+      $(key + '-drop').focus();
+    });
+    picker.addEventListener('change', () => {
+      if (picker.files.length) setFile(key, picker.files[0]);
+    });
+    card.addEventListener('dragover', event => {
+      if (!event.dataTransfer.types.includes('Files')) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'copy';
+      card.classList.add('dragging');
+    });
+    card.addEventListener('dragleave', event => {
+      if (!card.contains(event.relatedTarget)) card.classList.remove('dragging');
+    });
+    card.addEventListener('drop', event => {
+      event.preventDefault();
+      card.classList.remove('dragging');
+      const files = event.dataTransfer.files;
+      if (files.length > 1) setFile(key, null, 'Перетащите один файл в эту область.');
+      else if (files.length) setFile(key, files[0]);
+    });
+  }
+  $('previous-skip').addEventListener('click', () => {
+    setFile('previous', null);
+    $('run').focus();
+  });
+
+  window.addEventListener('dragover', event => {
+    if (event.dataTransfer.types.includes('Files')) event.preventDefault();
+  });
+  window.addEventListener('drop', event => {
+    if (event.dataTransfer.types.includes('Files')) event.preventDefault();
+  });
+  inputDate.addEventListener('input', updateInput);
+  $('review-form').noValidate = true;
+  $('review-form').addEventListener('submit', event => {
+    event.preventDefault();
+    run();
+  });
+
+  $('reset').addEventListener('click', () => {
+    inputDate.value = '';
+    setFile('current', null);
+    setFile('previous', null);
+    $('current-drop').focus();
+  });
+
+  $('demo').addEventListener('click', () => {
+    for (const key of ['current', 'previous']) {
+      state[key] = ReviewDemo[key];
+      fileError(key, '');
+      renderFile(key);
+    }
+    inputDate.value = ReviewDemo.date;
+    updateInput();
+    run();
+  });
+
+  async function readSource(source) {
+    if (!source) return null;
+    if (!source.slides) source.slides = await Pptx.read(source.file);
+    return source.slides;
+  }
+
+  async function run() {
+    if (state.busy) return;
+    if (!state.current) {
+      fileError('current', 'Добавьте текущий отчёт в формате .pptx.');
+      $('current-drop').focus();
+      return;
+    }
+    if (!inputDate.reportValidity()) return;
+    if (!state.previous && !$('previous-error').hidden) {
+      $('previous-drop').focus();
+      return;
+    }
+    const version = ++state.version;
+    state.busy = true;
+    renderControls();
+    message('Читаем презентации и проверяем текст слайдов…');
+    const sources = [state.current, state.previous];
+    const results = await Promise.allSettled(sources.map(readSource));
+    if (version !== state.version) return;
+    try {
+      let failed = false;
+      for (const [index, result] of results.entries()) {
+        if (result.status !== 'rejected') continue;
+        const key = index === 0 ? 'current' : 'previous';
+        fileError(key, result.reason?.message || 'Не удалось открыть презентацию.');
+        failed = true;
+      }
+      if (failed) {
+        message('Замените файл с ошибкой и повторите проверку.', true);
+        return;
+      }
+      const result = ReportReview.analyze(results[0].value, results[1].value, inputDate.value);
+      state.result = { ...result, date: inputDate.value, name: sources[0].name, demo: !sources[0].file };
+      state.filter = 'all';
+      state.query = '';
+      renderResults();
+      message('');
+      $('results-title').focus({ preventScroll: true });
+      $('results').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' });
+      selectSection('#results');
+    } catch (error) {
+      message(error.message || 'Не удалось завершить проверку.', true);
+    } finally {
+      state.busy = false;
+      renderControls();
+    }
+  }
+
+  function stat(value, label, iconName, color) {
+    const node = element('div', 'stat');
+    const tile = element('span', 'tile tile-' + color);
+    tile.append(icon(iconName));
+    const content = element('div', 'stat-content');
+    content.append(element('strong', '', numberFormatter.format(value)), element('span', '', label));
+    node.append(tile, content);
+    return node;
+  }
+
+  function notice(text, name = 'info') {
+    const box = element('div', 'notice');
+    box.append(icon(name), element('p', '', text));
+    return box;
+  }
+
+  function renderFinding(finding) {
+    const config = labels[finding.type];
+    const item = element('article', 'finding');
+    const marker = element('span', 'tile tile-' + config.color);
+    marker.append(icon(config.icon));
+    const content = element('div', 'finding-content');
+    const heading = element('div', 'finding-heading');
+    const title = element('h4', '', config.title);
+    heading.append(title, element('span', 'source', finding.source));
+    const excerpt = element('div', 'excerpt');
+    const start = finding.start ?? finding.excerpt.toLocaleLowerCase('ru').indexOf(finding.subject.toLocaleLowerCase('ru'));
+    const end = start + finding.subject.length;
+    if (start >= 0) {
+      excerpt.append(finding.excerpt.slice(0, start), element('mark', 'mark-' + config.color, finding.excerpt.slice(start, end)), finding.excerpt.slice(end));
+    } else {
+      excerpt.textContent = finding.excerpt;
+    }
+    if (finding.type === 'repeat' && start < 0) heading.insertBefore(element('strong', 'finding-subject', finding.subject), heading.lastChild);
+    content.append(heading, excerpt);
+    if (finding.assumed) {
+      content.append(element('p', 'finding-note', 'Дата без года · использован год отчёта (' + state.result.date.slice(0, 4) + ')'));
+    }
+    if (finding.previous) {
+      const details = element('details', 'evidence');
+      const summary = element('summary');
+      summary.append(icon('history'), 'Прошлый отчёт · слайд ' + finding.previous.slide + ' · совпадение ' + finding.method);
+      details.append(summary, element('div', 'evidence-text', finding.previous.excerpt));
+      content.append(details);
+    }
+    item.append(marker, content);
+    return item;
+  }
+
+  function renderList(parent, filters) {
+    const { findings } = state.result;
+    const normalize = text => text.toLocaleLowerCase('ru').replaceAll('ё', 'е').trim();
+    const query = normalize(state.query);
+    const filtered = findings.filter(finding => {
+      if (state.filter !== 'all' && finding.type !== state.filter) return false;
+      const content = [finding.excerpt, finding.slideTitle, finding.subject, 'слайд ' + finding.slide, finding.previous?.excerpt].join(' ');
+      return !query || normalize(content).includes(query);
+    });
+    for (const button of filters.children) button.setAttribute('aria-pressed', String(button.dataset.filter === state.filter));
+    parent.replaceChildren();
+    if (!filtered.length) {
+      parent.append(notice('По выбранным фильтрам замечаний нет.', 'search'));
+      return;
+    }
+    const count = element('p', 'findings-count', 'Показано ' + filtered.length + ' из ' + findings.length);
+    count.setAttribute('aria-live', 'polite');
+    parent.append(count);
+    let section;
+    let currentSlide;
+    for (const finding of filtered) {
+      if (currentSlide !== finding.slide) {
+        currentSlide = finding.slide;
+        section = element('section', 'slide-group');
+        const heading = element('h3', 'slide-heading');
+        heading.append(element('span', 'slide-number', 'Слайд ' + finding.slide));
+        if (finding.slideTitle) heading.append(element('span', 'slide-title', finding.slideTitle));
+        section.append(heading);
+        parent.append(section);
+      }
+      section.append(renderFinding(finding));
+    }
+  }
+
+  function renderResults() {
+    const parent = $('report-results');
+    const result = state.result;
+    parent.hidden = !result;
+    $('initial-results').hidden = Boolean(result);
+    $('export').hidden = !result?.findings.length;
+    $('results-caption').textContent = result
+      ? (result.demo ? 'Пример · ' : '') + result.name + ' · дата отчёта ' + formatDate(result.date)
+      : 'Замечания с номерами слайдов и фрагментами отчёта.';
+    if (!result) {
+      parent.replaceChildren();
+      return;
+    }
+    const stats = element('div', 'stats-grid');
+    const late = result.findings.filter(item => item.type === 'date').length;
+    const repeats = result.findings.filter(item => item.type === 'repeat').length;
+    const invalid = result.findings.filter(item => item.type === 'invalid').length;
+    stats.append(
+      stat(result.slides, 'Слайды', 'slides', 'blue'),
+      stat(late, 'Даты позже отчётной', 'calendar', 'orange'),
+      stat(repeats, 'Повторные пункты', 'repeat', 'purple'),
+      stat(invalid, 'Некорректные даты', 'warning', 'red')
+    );
+    parent.replaceChildren(stats);
+    const datesText = 'Распознано дат: ' + result.datesChecked + '. ';
+    let comparison = 'Сравнение пропущено: прошлый отчёт не загружен.';
+    if (result.previousSlides) comparison = 'Прошлый отчёт: слайдов ' + result.previousSlides + ', выполненных пунктов ' + result.completed + '.';
+    parent.append(notice(datesText + comparison));
+    if (result.textless.length) {
+      const slideList = result.textless.slice(0, 20).join(', ') + (result.textless.length > 20 ? ' и ещё ' + (result.textless.length - 20) : '');
+      parent.append(notice('Не найден редактируемый текст на слайдах: ' + slideList + '. Проверьте эти слайды вручную.', 'warning'));
+    }
+    if (!result.findings.length) {
+      const empty = element('div', 'empty-state empty-success');
+      const mark = element('span', 'empty-icon');
+      mark.append(icon('check'));
+      const copy = element('div');
+      copy.append(element('strong', '', 'Замечаний не найдено'), element('p', '', 'Проверка распознанного текста завершена.'));
+      empty.append(mark, copy);
+      parent.append(empty);
+      return;
+    }
+    const toolbar = element('div', 'results-toolbar');
+    const filters = element('div', 'filters');
+    filters.setAttribute('aria-label', 'Тип замечания');
+    const list = element('div', 'findings-list');
+    for (const [type, label, count] of [
+      ['all', 'Все', result.findings.length], ['date', labels.date.filter, late],
+      ['repeat', labels.repeat.filter, repeats], ['invalid', labels.invalid.filter, invalid]
+    ]) {
+      if (!count) continue;
+      const button = element('button', 'filter', label);
+      button.type = 'button';
+      button.dataset.filter = type;
+      button.append(element('span', '', String(count)));
+      button.addEventListener('click', () => {
+        state.filter = type;
+        renderList(list, filters);
+      });
+      filters.append(button);
+    }
+    const search = element('label', 'search-box');
+    const input = element('input');
+    input.type = 'search';
+    input.placeholder = 'Поиск по замечаниям';
+    input.setAttribute('aria-label', 'Поиск по замечаниям');
+    input.addEventListener('input', () => {
+      state.query = input.value;
+      renderList(list, filters);
+    });
+    search.append(icon('search'), input);
+    toolbar.append(filters, search);
+    parent.append(toolbar, list);
+    renderList(list, filters);
+  }
+
+  function csvCell(value) {
+    let text = String(value ?? '');
+    if (/^[\s\uFEFF]*[=+\-@]/u.test(text) || /^[\t\r\n]/u.test(text)) text = "'" + text;
+    return '"' + text.replaceAll('"', '""') + '"';
+  }
+
+  $('export').addEventListener('click', () => {
+    if (!state.result?.findings.length) return;
+    const { findings, date, name } = state.result;
+    const rows = [
+      ['Отчёт', 'Дата отчёта', 'Слайд', 'Заголовок слайда', 'Тип замечания', 'Дата или пункт', 'Расположение',
+        'Текст', 'Слайд прошлого отчёта', 'Совпадение', 'Текст прошлого отчёта', 'Примечание'],
+      ...findings.map(item => [name, formatDate(date), item.slide, item.slideTitle, labels[item.type].title, item.subject, item.source,
+        item.excerpt, item.previous?.slide, item.method, item.previous?.excerpt, item.assumed ? 'Год отчёта: ' + date.slice(0, 4) : ''])
+    ];
+    const csv = rows.map(row => row.map(csvCell).join(';')).join('\r\n');
+    const link = element('a');
+    link.href = URL.createObjectURL(new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8' }));
+    link.download = 'Замечания-' + date + '.csv';
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(link.href), 30000);
+  });
+
+  const help = $('help-dialog');
+  for (const button of document.querySelectorAll('[data-help]')) button.addEventListener('click', () => help.showModal());
+  help.addEventListener('click', event => {
+    if (event.target !== help) return;
+    const bounds = help.getBoundingClientRect();
+    if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) help.close();
+  });
+
+  function selectSection(hash) {
+    for (const link of document.querySelectorAll('a.nav-link')) {
+      if (link.hash === hash) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    }
+  }
+
+  window.addEventListener('hashchange', () => selectSection(location.hash === '#results' ? '#results' : '#check'));
+  for (const link of document.querySelectorAll('a.nav-link, .brand')) link.addEventListener('click', () => selectSection(link.hash));
+  selectSection(location.hash === '#results' ? '#results' : '#check');
+  renderControls();
+})();
+</script>
+</body>
+</html>
