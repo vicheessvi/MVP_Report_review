@@ -17,6 +17,7 @@
     ')(?!\\d|[./-]\\d)', 'giu'
   );
   const shortDatePattern = /(?<![\p{L}\p{N}./-])(\d{1,2})[./](\d{1,2})(?!\d|[./-]\d)/gu;
+  const completedDateSuffix = /^\s*(?:(?:г\.|года?)\s*)?[-‐‑‒–—−]\s*выполнено(?=\s*(?:[.,;:!?()]|$))/iu;
   const dateContext = /(?:^|[^\p{L}])(?:кс|срок(?:и|а)?|дата(?:ы)?|дедлайн)(?=$|[^\p{L}])/iu;
   const idHeader = /^(?:id|идентификатор|код|№|n\s*o\.?|номер|№\s*(?:п\/п|пункта|задачи))$/iu;
   const titleHeader = /^(?:наименование(?:\s+(?:мероприятия|пункта|задачи|работы))?|описание|мероприятие|пункт|задача|вопрос|действие|работа|тема|название|содержание|поручение)$/iu;
@@ -111,7 +112,10 @@
       textFound = true;
       for (const date of extractDates(text, year, shortDates)) {
         datesChecked++;
-        if (date.value !== null && date.value >= limit) continue;
+        if (date.value !== null) {
+          if (date.value >= limit) continue;
+          if (completedDateSuffix.test(text.slice(date.start + date.raw.length))) continue;
+        }
         findings.push({
           type: date.value === null ? 'invalid' : 'date',
           slide: slide.number, slideTitle: slide.title, source, excerpt: text,

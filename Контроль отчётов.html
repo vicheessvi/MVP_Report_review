@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; script-src 'sha256-N32vOvZPtybJ+3JKZ0x5IQBNfrmvQlBxA6vQnDsn/Lo=' 'sha256-awz2Kx+5TCSCeiNpB17yMUhUZVivKiemRfvPMtPkupE=' 'sha256-1Sp4V8sFHhhD3ek9w4WjFZmdYqY+0cfw2onEB6cChEw=' 'sha256-jvluqUhfL2XnS9W2j5FWfZeNr6OhaPmxV9LVhLHSdNA='; style-src 'sha256-43ZGDhK8I2SbNrNu79Yw55/l4Wg43IUhe+WfZuz9qW0='; img-src data:; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; script-src 'sha256-N32vOvZPtybJ+3JKZ0x5IQBNfrmvQlBxA6vQnDsn/Lo=' 'sha256-Ar47lByWYp2rrLXOyA2Noq7BX8eo33oSTQJ1DQRQTcU=' 'sha256-/h47A2VVzNWKqMFIlboY5y5QS7FSyI9y4VXTRLKJB/w=' 'sha256-jvluqUhfL2XnS9W2j5FWfZeNr6OhaPmxV9LVhLHSdNA='; style-src 'sha256-43ZGDhK8I2SbNrNu79Yw55/l4Wg43IUhe+WfZuz9qW0='; img-src data:; base-uri 'none'; form-action 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#17142a">
   <meta name="description" content="Проверка контрольных сроков, дат и выполненных пунктов в отчётах PowerPoint.">
@@ -434,7 +434,7 @@ dialog::backdrop { background: #17132675; }
                   <input type="date" id="report-date" min="1900-01-01" max="9999-12-31" required aria-describedby="date-hint">
                   <span class="date-placeholder" aria-hidden="true">Выберите дату</span>
                 </div>
-                <p class="date-hint" id="date-hint">Даты раньше указанной отмечаются как критичные</p>
+                <p class="date-hint" id="date-hint">Проверяются более ранние даты с учётом отметки «выполнено»</p>
               </div>
 
               <div class="input-card" id="previous-card">
@@ -486,7 +486,8 @@ dialog::backdrop { background: #17132675; }
     <div class="dialog-heading"><span class="tile tile-purple"><svg class="icon"><use href="#help"/></svg></span><h2 id="help-title">Правила проверки</h2><form method="dialog"><button class="icon-button" aria-label="Закрыть справку"><svg class="icon"><use href="#close"/></svg></button></form></div>
     <div class="dialog-body">
       <h3>Даты</h3>
-      <p>Даты в тексте слайдов и таблицах отмечаются как критичные, если они строго раньше даты отчёта. Поддерживаются форматы 12.11.2026, 12/11/26, 2026-11-12 и 12 ноября 2026. Для дат без года рядом с «КС», «Срок» или «Дата», в столбце сроков или с названием месяца используется год отчёта. Двузначный год считается годом XXI века.</p>
+      <p>Даты в тексте слайдов и таблицах отмечаются как критичные, если они строго раньше даты отчёта. Для корректных календарных дат действует исключение в формате «05.11.2026 — выполнено». Между датой и словом «выполнено» можно поставить дефис или тире.</p>
+      <p>Поддерживаются форматы 12.11.2026, 12/11/26, 2026-11-12 и 12 ноября 2026. Для дат без года рядом с «КС», «Срок» или «Дата», в столбце сроков или с названием месяца используется год отчёта. Двузначный год считается годом XXI века.</p>
       <h3>Выполненные пункты</h3>
       <p>Загрузите прошлый отчёт, чтобы найти повторные пункты со статусом «Выполнено», «Завершено», «Исполнено» или «Закрыто». Сравнение идёт по ID либо по точному названию без учёта регистра и знаков препинания. Для таблиц желательно использовать отдельные столбцы «ID», «Задача» и «Статус».</p>
       <h3>Область проверки</h3>
@@ -713,6 +714,7 @@ dialog::backdrop { background: #17132675; }
     ')(?!\\d|[./-]\\d)', 'giu'
   );
   const shortDatePattern = /(?<![\p{L}\p{N}./-])(\d{1,2})[./](\d{1,2})(?!\d|[./-]\d)/gu;
+  const completedDateSuffix = /^\s*(?:(?:г\.|года?)\s*)?[-‐‑‒–—−]\s*выполнено(?=\s*(?:[.,;:!?()]|$))/iu;
   const dateContext = /(?:^|[^\p{L}])(?:кс|срок(?:и|а)?|дата(?:ы)?|дедлайн)(?=$|[^\p{L}])/iu;
   const idHeader = /^(?:id|идентификатор|код|№|n\s*o\.?|номер|№\s*(?:п\/п|пункта|задачи))$/iu;
   const titleHeader = /^(?:наименование(?:\s+(?:мероприятия|пункта|задачи|работы))?|описание|мероприятие|пункт|задача|вопрос|действие|работа|тема|название|содержание|поручение)$/iu;
@@ -807,7 +809,10 @@ dialog::backdrop { background: #17132675; }
       textFound = true;
       for (const date of extractDates(text, year, shortDates)) {
         datesChecked++;
-        if (date.value !== null && date.value >= limit) continue;
+        if (date.value !== null) {
+          if (date.value >= limit) continue;
+          if (completedDateSuffix.test(text.slice(date.start + date.raw.length))) continue;
+        }
         findings.push({
           type: date.value === null ? 'invalid' : 'date',
           slide: slide.number, slideTitle: slide.title, source, excerpt: text,
@@ -972,7 +977,7 @@ dialog::backdrop { background: #17132675; }
         slide(1, 'Ход реализации проекта', ['Отчёт по состоянию на 12.11.2026']),
         slide(2, 'Контрольные мероприятия', [], [
           ['ИТ-104', 'Настройка резервного копирования', 'В работе', '10.11.2026'],
-          ['ИТ-112', 'Согласование доступа к порталу', 'Выполнено', '05.11.2026'],
+          ['ИТ-112', 'Согласование доступа к порталу', 'Выполнено', '05.11.2026 — выполнено'],
           ['ИТ-121', 'Проверка журналов событий', 'На согласовании', '12.11.2026']
         ]),
         slide(3, 'Следующие шаги', ['Тестирование интеграции запланировано на 20 ноября 2026 года.']),
