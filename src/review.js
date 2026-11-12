@@ -111,7 +111,7 @@
       textFound = true;
       for (const date of extractDates(text, year, shortDates)) {
         datesChecked++;
-        if (date.value !== null && date.value <= limit) continue;
+        if (date.value !== null && date.value >= limit) continue;
         findings.push({
           type: date.value === null ? 'invalid' : 'date',
           slide: slide.number, slideTitle: slide.title, source, excerpt: text,

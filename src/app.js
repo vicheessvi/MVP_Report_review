@@ -7,9 +7,9 @@
   const dateFormatter = new Intl.DateTimeFormat('ru-RU', { dateStyle: 'short', timeZone: 'UTC' });
   const numberFormatter = new Intl.NumberFormat('ru-RU');
   const labels = {
-    date: { title: 'Дата позже отчётной', filter: 'Поздние даты', icon: 'calendar', color: 'orange' },
+    date: { title: 'Дата раньше отчётной', filter: 'Критичные даты', icon: 'calendar', color: 'red' },
     repeat: { title: 'Пункт уже был выполнен', filter: 'Выполненные пункты', icon: 'repeat', color: 'purple' },
-    invalid: { title: 'Некорректная дата', filter: 'Некорректные даты', icon: 'warning', color: 'red' }
+    invalid: { title: 'Некорректная дата', filter: 'Некорректные даты', icon: 'warning', color: 'orange' }
   };
 
   function element(tag, className, value) {
@@ -317,14 +317,14 @@
       return;
     }
     const stats = element('div', 'stats-grid');
-    const late = result.findings.filter(item => item.type === 'date').length;
+    const critical = result.findings.filter(item => item.type === 'date').length;
     const repeats = result.findings.filter(item => item.type === 'repeat').length;
     const invalid = result.findings.filter(item => item.type === 'invalid').length;
     stats.append(
       stat(result.slides, 'Слайды', 'slides', 'blue'),
-      stat(late, 'Даты позже отчётной', 'calendar', 'orange'),
+      stat(critical, labels.date.filter, labels.date.icon, labels.date.color),
       stat(repeats, 'Повторные пункты', 'repeat', 'purple'),
-      stat(invalid, 'Некорректные даты', 'warning', 'red')
+      stat(invalid, labels.invalid.filter, labels.invalid.icon, labels.invalid.color)
     );
     parent.replaceChildren(stats);
     const datesText = 'Распознано дат: ' + result.datesChecked + '. ';
@@ -350,7 +350,7 @@
     filters.setAttribute('aria-label', 'Тип замечания');
     const list = element('div', 'findings-list');
     for (const [type, label, count] of [
-      ['all', 'Все', result.findings.length], ['date', labels.date.filter, late],
+      ['all', 'Все', result.findings.length], ['date', labels.date.filter, critical],
       ['repeat', labels.repeat.filter, repeats], ['invalid', labels.invalid.filter, invalid]
     ]) {
       if (!count) continue;

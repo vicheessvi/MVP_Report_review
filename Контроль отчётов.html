@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; script-src 'sha256-N32vOvZPtybJ+3JKZ0x5IQBNfrmvQlBxA6vQnDsn/Lo=' 'sha256-guZUOxMtVG8axAjBSLu51Pbr4yG8pzBJHx4pkVndAyY=' 'sha256-PibttZZQ6PUr0vAHOK0+ved2ZB+EhBvlBjj4x2EkMNM=' 'sha256-ppg+GyWns87UFIIlRB/pHTzKP+MYL7A2NduscM5mMDg='; style-src 'sha256-43ZGDhK8I2SbNrNu79Yw55/l4Wg43IUhe+WfZuz9qW0='; img-src data:; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; script-src 'sha256-N32vOvZPtybJ+3JKZ0x5IQBNfrmvQlBxA6vQnDsn/Lo=' 'sha256-awz2Kx+5TCSCeiNpB17yMUhUZVivKiemRfvPMtPkupE=' 'sha256-1Sp4V8sFHhhD3ek9w4WjFZmdYqY+0cfw2onEB6cChEw=' 'sha256-jvluqUhfL2XnS9W2j5FWfZeNr6OhaPmxV9LVhLHSdNA='; style-src 'sha256-43ZGDhK8I2SbNrNu79Yw55/l4Wg43IUhe+WfZuz9qW0='; img-src data:; base-uri 'none'; form-action 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#17142a">
   <meta name="description" content="Проверка контрольных сроков, дат и выполненных пунктов в отчётах PowerPoint.">
@@ -385,7 +385,7 @@ dialog::backdrop { background: #17132675; }
           <div class="hero-copy">
             <span class="hero-label"><svg class="icon"><use href="#file"/></svg> ОТЧЁТЫ POWERPOINT</span>
             <h1 id="page-title">Проверка отчётов</h1>
-            <p>Найдите даты позже отчётной и пункты, которые уже были выполнены в предыдущем отчёте.</p>
+            <p>Найдите даты раньше отчётной и пункты, которые уже были выполнены в предыдущем отчёте.</p>
           </div>
           <div class="hero-art" aria-hidden="true">
             <div class="orbit orbit-outer"></div><div class="orbit orbit-inner"></div>
@@ -434,7 +434,7 @@ dialog::backdrop { background: #17132675; }
                   <input type="date" id="report-date" min="1900-01-01" max="9999-12-31" required aria-describedby="date-hint">
                   <span class="date-placeholder" aria-hidden="true">Выберите дату</span>
                 </div>
-                <p class="date-hint" id="date-hint">Даты позже указанной будут подсвечены</p>
+                <p class="date-hint" id="date-hint">Даты раньше указанной отмечаются как критичные</p>
               </div>
 
               <div class="input-card" id="previous-card">
@@ -486,7 +486,7 @@ dialog::backdrop { background: #17132675; }
     <div class="dialog-heading"><span class="tile tile-purple"><svg class="icon"><use href="#help"/></svg></span><h2 id="help-title">Правила проверки</h2><form method="dialog"><button class="icon-button" aria-label="Закрыть справку"><svg class="icon"><use href="#close"/></svg></button></form></div>
     <div class="dialog-body">
       <h3>Даты</h3>
-      <p>Проверяются даты в тексте слайдов и таблицах. Поддерживаются форматы 12.11.2026, 12/11/26, 2026-11-12 и 12 ноября 2026. Для дат без года рядом с «КС», «Срок» или «Дата», в столбце сроков или с названием месяца используется год отчёта. Двузначный год считается годом XXI века.</p>
+      <p>Даты в тексте слайдов и таблицах отмечаются как критичные, если они строго раньше даты отчёта. Поддерживаются форматы 12.11.2026, 12/11/26, 2026-11-12 и 12 ноября 2026. Для дат без года рядом с «КС», «Срок» или «Дата», в столбце сроков или с названием месяца используется год отчёта. Двузначный год считается годом XXI века.</p>
       <h3>Выполненные пункты</h3>
       <p>Загрузите прошлый отчёт, чтобы найти повторные пункты со статусом «Выполнено», «Завершено», «Исполнено» или «Закрыто». Сравнение идёт по ID либо по точному названию без учёта регистра и знаков препинания. Для таблиц желательно использовать отдельные столбцы «ID», «Задача» и «Статус».</p>
       <h3>Область проверки</h3>
@@ -807,7 +807,7 @@ dialog::backdrop { background: #17132675; }
       textFound = true;
       for (const date of extractDates(text, year, shortDates)) {
         datesChecked++;
-        if (date.value !== null && date.value <= limit) continue;
+        if (date.value !== null && date.value >= limit) continue;
         findings.push({
           type: date.value === null ? 'invalid' : 'date',
           slide: slide.number, slideTitle: slide.title, source, excerpt: text,
@@ -971,7 +971,7 @@ dialog::backdrop { background: #17132675; }
       slides: [
         slide(1, 'Ход реализации проекта', ['Отчёт по состоянию на 12.11.2026']),
         slide(2, 'Контрольные мероприятия', [], [
-          ['ИТ-104', 'Настройка резервного копирования', 'В работе', '18.11.2026'],
+          ['ИТ-104', 'Настройка резервного копирования', 'В работе', '10.11.2026'],
           ['ИТ-112', 'Согласование доступа к порталу', 'Выполнено', '05.11.2026'],
           ['ИТ-121', 'Проверка журналов событий', 'На согласовании', '12.11.2026']
         ]),
@@ -984,7 +984,7 @@ dialog::backdrop { background: #17132675; }
       slides: [
         slide(1, 'Ход реализации проекта', ['Отчёт по состоянию на 05.11.2026']),
         slide(2, 'Контрольные мероприятия', [], [
-          ['ИТ-104', 'Настройка резервного копирования', 'В работе', '18.11.2026'],
+          ['ИТ-104', 'Настройка резервного копирования', 'В работе', '10.11.2026'],
           ['ИТ-112', 'Согласование доступа к порталу', 'Выполнено', '05.11.2026'],
           ['ИТ-117', 'Подготовка инструкции', 'Выполнено', '04.11.2026']
         ])
@@ -1003,9 +1003,9 @@ dialog::backdrop { background: #17132675; }
   const dateFormatter = new Intl.DateTimeFormat('ru-RU', { dateStyle: 'short', timeZone: 'UTC' });
   const numberFormatter = new Intl.NumberFormat('ru-RU');
   const labels = {
-    date: { title: 'Дата позже отчётной', filter: 'Поздние даты', icon: 'calendar', color: 'orange' },
+    date: { title: 'Дата раньше отчётной', filter: 'Критичные даты', icon: 'calendar', color: 'red' },
     repeat: { title: 'Пункт уже был выполнен', filter: 'Выполненные пункты', icon: 'repeat', color: 'purple' },
-    invalid: { title: 'Некорректная дата', filter: 'Некорректные даты', icon: 'warning', color: 'red' }
+    invalid: { title: 'Некорректная дата', filter: 'Некорректные даты', icon: 'warning', color: 'orange' }
   };
 
   function element(tag, className, value) {
@@ -1313,14 +1313,14 @@ dialog::backdrop { background: #17132675; }
       return;
     }
     const stats = element('div', 'stats-grid');
-    const late = result.findings.filter(item => item.type === 'date').length;
+    const critical = result.findings.filter(item => item.type === 'date').length;
     const repeats = result.findings.filter(item => item.type === 'repeat').length;
     const invalid = result.findings.filter(item => item.type === 'invalid').length;
     stats.append(
       stat(result.slides, 'Слайды', 'slides', 'blue'),
-      stat(late, 'Даты позже отчётной', 'calendar', 'orange'),
+      stat(critical, labels.date.filter, labels.date.icon, labels.date.color),
       stat(repeats, 'Повторные пункты', 'repeat', 'purple'),
-      stat(invalid, 'Некорректные даты', 'warning', 'red')
+      stat(invalid, labels.invalid.filter, labels.invalid.icon, labels.invalid.color)
     );
     parent.replaceChildren(stats);
     const datesText = 'Распознано дат: ' + result.datesChecked + '. ';
@@ -1346,7 +1346,7 @@ dialog::backdrop { background: #17132675; }
     filters.setAttribute('aria-label', 'Тип замечания');
     const list = element('div', 'findings-list');
     for (const [type, label, count] of [
-      ['all', 'Все', result.findings.length], ['date', labels.date.filter, late],
+      ['all', 'Все', result.findings.length], ['date', labels.date.filter, critical],
       ['repeat', labels.repeat.filter, repeats], ['invalid', labels.invalid.filter, invalid]
     ]) {
       if (!count) continue;
