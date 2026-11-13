@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; script-src 'sha256-N32vOvZPtybJ+3JKZ0x5IQBNfrmvQlBxA6vQnDsn/Lo=' 'sha256-iT+Dqv+wxXUbKQh6JU8K087nkN7oDeRlR/AvF2XwvwY=' 'sha256-ZjLJ9gseNPIzL6P9UFtLMICF6N5KCelrqtVynXJ168Q=' 'sha256-dTgO11/r0dRqAY7QRuF6g7EX0vRuJQfXd0mM2sPoo8k='; style-src 'sha256-43ZGDhK8I2SbNrNu79Yw55/l4Wg43IUhe+WfZuz9qW0='; img-src data:; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; script-src 'sha256-N32vOvZPtybJ+3JKZ0x5IQBNfrmvQlBxA6vQnDsn/Lo=' 'sha256-fymjUpt/JmJO2dPGMu2gyqnKOmbIRZsIsNA4VjjZ8MI=' 'sha256-aK9os667lS0272R/0jj0h0gcUkIRFPQ9FwODYh7Gvdo=' 'sha256-dTgO11/r0dRqAY7QRuF6g7EX0vRuJQfXd0mM2sPoo8k='; style-src 'sha256-43ZGDhK8I2SbNrNu79Yw55/l4Wg43IUhe+WfZuz9qW0='; img-src data:; base-uri 'none'; form-action 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#17142a">
   <meta name="description" content="Проверка контрольных сроков, дат и выполненных пунктов в отчётах PowerPoint.">
@@ -486,8 +486,8 @@ dialog::backdrop { background: #17132675; }
     <div class="dialog-heading"><span class="tile tile-purple"><svg class="icon"><use href="#help"/></svg></span><h2 id="help-title">Правила проверки</h2><form method="dialog"><button class="icon-button" aria-label="Закрыть справку"><svg class="icon"><use href="#close"/></svg></button></form></div>
     <div class="dialog-body">
       <h3>Даты</h3>
-      <p>Даты в тексте слайдов и таблицах отмечаются как критичные, если они строго раньше даты отчёта. Для корректных календарных дат действует исключение в формате «05.11.2026 — выполнено». Между датой и словом «выполнено» можно поставить дефис или тире.</p>
-      <p>Поддерживаются форматы 12.11.2026, 12/11/26, 2026-11-12 и 12 ноября 2026. Для дат без года рядом с «КС», «Срок» или «Дата», в столбце сроков или с названием месяца используется год отчёта. Двузначный год считается годом XXI века.</p>
+      <p>Даты в тексте слайдов и таблицах отмечаются как критичные, если они строго раньше даты отчёта. Для корректных календарных дат действует исключение в формате «05.11.2026 — выполнено». Между датой и словом «выполнено» можно поставить дефис или тире. Точка после статуса необязательна.</p>
+      <p>Поддерживаются форматы 12.11.2026, 12.11.26, 2026-11-12 и 12 ноября 2026. Записи вида 12/11/26 пропускаются. Для дат без года рядом с «КС», «Срок» или «Дата», в столбце сроков или с названием месяца используется год отчёта. Двузначный год считается годом XXI века.</p>
       <h3>Выполненные пункты</h3>
       <p>Загрузите прошлый отчёт, чтобы найти повторные пункты со статусом «Выполнено», «Завершено», «Исполнено» или «Закрыто». Сравнение идёт по ID либо по точному названию без учёта регистра и знаков препинания. Для таблиц желательно использовать отдельные столбцы «ID», «Задача» и «Статус».</p>
       <h3>Область проверки</h3>
@@ -707,21 +707,23 @@ dialog::backdrop { background: #17132675; }
   const months = new Map(monthNames.flatMap((names, i) => names.split('|').map(name => [name, i + 1])));
   const writtenMonth = [...months.keys()].join('|');
   const datePattern = new RegExp(
-    '(?<![\\p{L}\\p{N}])(?:' +
-    '(?<isoYear>\\d{4})(?<isoSep>[-./])(?<isoMonth>\\d{1,2})\\k<isoSep>(?<isoDay>\\d{1,2})' +
-    '|(?<day>\\d{1,2})(?<sep>[./-])(?<month>\\d{1,2})\\k<sep>(?<year>\\d{4}|\\d{2})' +
+    '(?<![\\p{L}\\p{N}]|\\d/)(?:' +
+    '(?<isoYear>\\d{4})(?<isoSep>[-.])(?<isoMonth>\\d{1,2})\\k<isoSep>(?<isoDay>\\d{1,2})' +
+    '|(?<day>\\d{1,2})(?<sep>[.-])(?<month>\\d{1,2})\\k<sep>(?<year>\\d{4}|\\d{2})' +
     '|(?<wordDay>\\d{1,2})\\s+(?<wordMonth>' + writtenMonth + ')(?![а-яё])(?:\\.?\\s+(?<wordYear>\\d{4}|\\d{2})(?!\\d))?' +
     ')(?!\\d|[./-]\\d)', 'giu'
   );
-  const shortDatePattern = /(?<![\p{L}\p{N}./-])(\d{1,2})[./](\d{1,2})(?!\d|[./-]\d)/gu;
-  const completedDateSuffix = /^\s*(?:(?:г\.|года?)\s*)?[-‐‑‒–—−]\s*выполнено(?=\s*(?:[.,;:!?()]|$))/iu;
+  const shortDatePattern = /(?<![\p{L}\p{N}./-])(\d{1,2})\.(\d{1,2})(?!\d|[./-]\d)/gu;
+  const completedDateSeparator = /^\s*(?:(?:г\.|года?)\s*)?[-‐‑‒–—−]\s*/iu;
+  const completedWord = /^выполнено(?![\p{L}\p{N}_])/iu;
+  const partialCompletion = /^\s*(?:[,:;(\p{Pd}]\s*)?(?:частично|не\s+полностью|не\s+в\s+полном\s+объ[её]ме)(?![\p{L}\p{N}_])/iu;
   const dateContext = /(?:^|[^\p{L}])(?:кс|срок(?:и|а)?|дата(?:ы)?|дедлайн)(?=$|[^\p{L}])/iu;
   const idHeader = /^(?:id|идентификатор|код|№|n\s*o\.?|номер|№\s*(?:п\/п|пункта|задачи))$/iu;
   const titleHeader = /^(?:наименование(?:\s+(?:мероприятия|пункта|задачи|работы))?|описание|мероприятие|пункт|задача|вопрос|действие|работа|тема|название|содержание|поручение)$/iu;
   const statusHeader = /^(?:статус(?:\s+(?:исполнения|выполнения))?|состояние|ход\s+выполнения)$/iu;
   const deadlineHeader = /^(?:кс|контрольный\s+срок(?:\s*\(кс\))?|срок(?:\s+выполнения)?|дата(?:\s+выполнения)?|дедлайн)$/iu;
   const statusLabel = /^(?:статус(?:\s+(?:исполнения|выполнения))?|состояние)\s*[:–—-]\s*/iu;
-  const completedStatus = /^(?:выполнено|выполнен[аы]?|завершено|заверш[её]н[аы]?|исполнено|исполнен[аы]?|закрыто|закрыт[аы]?)(?=$|[\s.,;:–—()])/iu;
+  const completedStatus = /^(?:выполнен[аы]?|завершено|заверш[её]н[аы]?|исполнено|исполнен[аы]?|закрыто|закрыт[аы]?)(?=$|[\s.,;:–—()])/iu;
   const otherStatus = /^(?:не\s+выполнено|в\s+работе|в\s+процессе|выполняется|открыто|планируется|просрочено|отложено|отменено|на\s+согласовании|не\s+начато)(?=$|[\s.,;:–—()])/iu;
   const metadata = /^(?:(?:контрольный\s+)?срок|кс|дата|ответственный|исполнитель|примечание|комментарий|прогресс|статус)\s*[:–—]/iu;
   const idLabel = /^(?:id|код|№|идентификатор|номер(?:\s+(?:пункта|задачи))?)\s*[:№]?\s*([\p{L}\d][\p{L}\d._/-]*)(?=$|\s)/iu;
@@ -759,8 +761,14 @@ dialog::backdrop { background: #17132675; }
     return text.normalize('NFKC').toLocaleLowerCase('ru').replaceAll('ё', 'е').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
   }
 
+  function isCompleted(value) {
+    const match = value.match(completedWord);
+    return Boolean(match && !partialCompletion.test(value.slice(match[0].length)));
+  }
+
   function status(text) {
     const value = text.trim().replace(/^[✓✔✅☑●•]\s*/u, '').replace(statusLabel, '');
+    if (isCompleted(value)) return 'done';
     if (completedStatus.test(value)) {
       const rest = value.replace(completedStatus, '').trim();
       if (/^[\p{L}]/u.test(rest) && !/^\d+\s/u.test(rest)) return null;
@@ -811,7 +819,9 @@ dialog::backdrop { background: #17132675; }
         datesChecked++;
         if (date.value !== null) {
           if (date.value >= limit) continue;
-          if (completedDateSuffix.test(text.slice(date.start + date.raw.length))) continue;
+          const suffix = text.slice(date.start + date.raw.length);
+          const separator = suffix.match(completedDateSeparator);
+          if (separator && isCompleted(suffix.slice(separator[0].length))) continue;
         }
         findings.push({
           type: date.value === null ? 'invalid' : 'date',
@@ -849,7 +859,7 @@ dialog::backdrop { background: #17132675; }
     for (const [index, block] of slide.blocks.entries()) {
       const source = block === slide.titleBlock ? 'Заголовок слайда' : 'Текстовый блок ' + (index + 1);
       for (const [i, line] of block.lines.entries()) {
-        checkText(line, source, i > 0 && dateContext.test(block.lines[i - 1]) && /^[\d./\s]+$/u.test(line));
+        checkText(line, source, i > 0 && dateContext.test(block.lines[i - 1]) && /^[\d.\s]+$/u.test(line));
       }
       if (block === slide.titleBlock) continue;
 
@@ -979,10 +989,10 @@ dialog::backdrop { background: #17132675; }
         slide(1, 'Ход реализации проекта', ['Отчёт по состоянию на 12.11.2026']),
         slide(2, 'Контрольные мероприятия', [], [
           ['ИТ-104', 'Настройка резервного копирования', 'В работе', '10.11.2026'],
-          ['ИТ-112', 'Согласование доступа к порталу', 'Выполнено', '05.11.2026 — выполнено'],
+          ['ИТ-112', 'Согласование доступа к порталу', 'Выполнено', '05.11.2026 — выполнено по плану'],
           ['ИТ-121', 'Проверка журналов событий', 'На согласовании', '12.11.2026']
         ]),
-        slide(3, 'Следующие шаги', ['Тестирование интеграции запланировано на 20 ноября 2026 года.']),
+        slide(3, 'Следующие шаги', ['Тестирование интеграции запланировано на 20 ноября 2026 года.', 'Заявка № 05/11/26']),
         slide(4, 'Сроки подготовки', ['Дата отправки материалов: 31.11.2026']),
         slide(5, 'Спасибо за внимание', ['Вопросы и обсуждение'])
       ]

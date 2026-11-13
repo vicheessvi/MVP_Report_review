@@ -10,21 +10,23 @@
   const months = new Map(monthNames.flatMap((names, i) => names.split('|').map(name => [name, i + 1])));
   const writtenMonth = [...months.keys()].join('|');
   const datePattern = new RegExp(
-    '(?<![\\p{L}\\p{N}])(?:' +
-    '(?<isoYear>\\d{4})(?<isoSep>[-./])(?<isoMonth>\\d{1,2})\\k<isoSep>(?<isoDay>\\d{1,2})' +
-    '|(?<day>\\d{1,2})(?<sep>[./-])(?<month>\\d{1,2})\\k<sep>(?<year>\\d{4}|\\d{2})' +
+    '(?<![\\p{L}\\p{N}]|\\d/)(?:' +
+    '(?<isoYear>\\d{4})(?<isoSep>[-.])(?<isoMonth>\\d{1,2})\\k<isoSep>(?<isoDay>\\d{1,2})' +
+    '|(?<day>\\d{1,2})(?<sep>[.-])(?<month>\\d{1,2})\\k<sep>(?<year>\\d{4}|\\d{2})' +
     '|(?<wordDay>\\d{1,2})\\s+(?<wordMonth>' + writtenMonth + ')(?![а-яё])(?:\\.?\\s+(?<wordYear>\\d{4}|\\d{2})(?!\\d))?' +
     ')(?!\\d|[./-]\\d)', 'giu'
   );
-  const shortDatePattern = /(?<![\p{L}\p{N}./-])(\d{1,2})[./](\d{1,2})(?!\d|[./-]\d)/gu;
-  const completedDateSuffix = /^\s*(?:(?:г\.|года?)\s*)?[-‐‑‒–—−]\s*выполнено(?=\s*(?:[.,;:!?()]|$))/iu;
+  const shortDatePattern = /(?<![\p{L}\p{N}./-])(\d{1,2})\.(\d{1,2})(?!\d|[./-]\d)/gu;
+  const completedDateSeparator = /^\s*(?:(?:г\.|года?)\s*)?[-‐‑‒–—−]\s*/iu;
+  const completedWord = /^выполнено(?![\p{L}\p{N}_])/iu;
+  const partialCompletion = /^\s*(?:[,:;(\p{Pd}]\s*)?(?:частично|не\s+полностью|не\s+в\s+полном\s+объ[её]ме)(?![\p{L}\p{N}_])/iu;
   const dateContext = /(?:^|[^\p{L}])(?:кс|срок(?:и|а)?|дата(?:ы)?|дедлайн)(?=$|[^\p{L}])/iu;
   const idHeader = /^(?:id|идентификатор|код|№|n\s*o\.?|номер|№\s*(?:п\/п|пункта|задачи))$/iu;
   const titleHeader = /^(?:наименование(?:\s+(?:мероприятия|пункта|задачи|работы))?|описание|мероприятие|пункт|задача|вопрос|действие|работа|тема|название|содержание|поручение)$/iu;
   const statusHeader = /^(?:статус(?:\s+(?:исполнения|выполнения))?|состояние|ход\s+выполнения)$/iu;
   const deadlineHeader = /^(?:кс|контрольный\s+срок(?:\s*\(кс\))?|срок(?:\s+выполнения)?|дата(?:\s+выполнения)?|дедлайн)$/iu;
   const statusLabel = /^(?:статус(?:\s+(?:исполнения|выполнения))?|состояние)\s*[:–—-]\s*/iu;
-  const completedStatus = /^(?:выполнено|выполнен[аы]?|завершено|заверш[её]н[аы]?|исполнено|исполнен[аы]?|закрыто|закрыт[аы]?)(?=$|[\s.,;:–—()])/iu;
+  const completedStatus = /^(?:выполнен[аы]?|завершено|заверш[её]н[аы]?|исполнено|исполнен[аы]?|закрыто|закрыт[аы]?)(?=$|[\s.,;:–—()])/iu;
   const otherStatus = /^(?:не\s+выполнено|в\s+работе|в\s+процессе|выполняется|открыто|планируется|просрочено|отложено|отменено|на\s+согласовании|не\s+начато)(?=$|[\s.,;:–—()])/iu;
   const metadata = /^(?:(?:контрольный\s+)?срок|кс|дата|ответственный|исполнитель|примечание|комментарий|прогресс|статус)\s*[:–—]/iu;
   const idLabel = /^(?:id|код|№|идентификатор|номер(?:\s+(?:пункта|задачи))?)\s*[:№]?\s*([\p{L}\d][\p{L}\d._/-]*)(?=$|\s)/iu;
@@ -62,8 +64,14 @@
     return text.normalize('NFKC').toLocaleLowerCase('ru').replaceAll('ё', 'е').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
   }
 
+  function isCompleted(value) {
+    const match = value.match(completedWord);
+    return Boolean(match && !partialCompletion.test(value.slice(match[0].length)));
+  }
+
   function status(text) {
     const value = text.trim().replace(/^[✓✔✅☑●•]\s*/u, '').replace(statusLabel, '');
+    if (isCompleted(value)) return 'done';
     if (completedStatus.test(value)) {
       const rest = value.replace(completedStatus, '').trim();
       if (/^[\p{L}]/u.test(rest) && !/^\d+\s/u.test(rest)) return null;
@@ -114,7 +122,9 @@
         datesChecked++;
         if (date.value !== null) {
           if (date.value >= limit) continue;
-          if (completedDateSuffix.test(text.slice(date.start + date.raw.length))) continue;
+          const suffix = text.slice(date.start + date.raw.length);
+          const separator = suffix.match(completedDateSeparator);
+          if (separator && isCompleted(suffix.slice(separator[0].length))) continue;
         }
         findings.push({
           type: date.value === null ? 'invalid' : 'date',
@@ -152,7 +162,7 @@
     for (const [index, block] of slide.blocks.entries()) {
       const source = block === slide.titleBlock ? 'Заголовок слайда' : 'Текстовый блок ' + (index + 1);
       for (const [i, line] of block.lines.entries()) {
-        checkText(line, source, i > 0 && dateContext.test(block.lines[i - 1]) && /^[\d./\s]+$/u.test(line));
+        checkText(line, source, i > 0 && dateContext.test(block.lines[i - 1]) && /^[\d.\s]+$/u.test(line));
       }
       if (block === slide.titleBlock) continue;
 
