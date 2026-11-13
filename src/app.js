@@ -321,16 +321,24 @@
     const repeats = result.findings.filter(item => item.type === 'repeat').length;
     const invalid = result.findings.filter(item => item.type === 'invalid').length;
     stats.append(
-      stat(result.slides, 'Слайды', 'slides', 'blue'),
+      stat(result.slides, 'Проверено слайдов', 'slides', 'blue'),
       stat(critical, labels.date.filter, labels.date.icon, labels.date.color),
       stat(repeats, 'Повторные пункты', 'repeat', 'purple'),
       stat(invalid, labels.invalid.filter, labels.invalid.icon, labels.invalid.color)
     );
     parent.replaceChildren(stats);
+    if (!result.slides) {
+      parent.append(notice('В текущем отчёте один слайд. По правилу последний слайд пропускается.'));
+      return;
+    }
     const datesText = 'Распознано дат: ' + result.datesChecked + '. ';
-    let comparison = 'Сравнение пропущено: прошлый отчёт не загружен.';
-    if (result.previousSlides) comparison = 'Прошлый отчёт: слайдов ' + result.previousSlides + ', выполненных пунктов ' + result.completed + '.';
-    parent.append(notice(datesText + comparison));
+    let comparison = 'Для сравнения можно загрузить прошлый отчёт.';
+    if (result.previousSlides === 0) {
+      comparison = 'В прошлом отчёте один слайд, поэтому сравнение пропущено.';
+    } else if (result.previousSlides !== null) {
+      comparison = 'В прошлом отчёте проверено слайдов: ' + result.previousSlides + '. Выполненных пунктов: ' + result.completed + '.';
+    }
+    parent.append(notice('Последний слайд каждой презентации пропущен. ' + datesText + comparison));
     if (result.textless.length) {
       const slideList = result.textless.slice(0, 20).join(', ') + (result.textless.length > 20 ? ' и ещё ' + (result.textless.length - 20) : '');
       parent.append(notice('Не найден редактируемый текст на слайдах: ' + slideList + '. Проверьте эти слайды вручную.', 'warning'));

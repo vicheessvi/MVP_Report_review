@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; script-src 'sha256-N32vOvZPtybJ+3JKZ0x5IQBNfrmvQlBxA6vQnDsn/Lo=' 'sha256-Ar47lByWYp2rrLXOyA2Noq7BX8eo33oSTQJ1DQRQTcU=' 'sha256-/h47A2VVzNWKqMFIlboY5y5QS7FSyI9y4VXTRLKJB/w=' 'sha256-jvluqUhfL2XnS9W2j5FWfZeNr6OhaPmxV9LVhLHSdNA='; style-src 'sha256-43ZGDhK8I2SbNrNu79Yw55/l4Wg43IUhe+WfZuz9qW0='; img-src data:; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; script-src 'sha256-N32vOvZPtybJ+3JKZ0x5IQBNfrmvQlBxA6vQnDsn/Lo=' 'sha256-iT+Dqv+wxXUbKQh6JU8K087nkN7oDeRlR/AvF2XwvwY=' 'sha256-ZjLJ9gseNPIzL6P9UFtLMICF6N5KCelrqtVynXJ168Q=' 'sha256-dTgO11/r0dRqAY7QRuF6g7EX0vRuJQfXd0mM2sPoo8k='; style-src 'sha256-43ZGDhK8I2SbNrNu79Yw55/l4Wg43IUhe+WfZuz9qW0='; img-src data:; base-uri 'none'; form-action 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#17142a">
   <meta name="description" content="Проверка контрольных сроков, дат и выполненных пунктов в отчётах PowerPoint.">
@@ -491,7 +491,7 @@ dialog::backdrop { background: #17132675; }
       <h3>Выполненные пункты</h3>
       <p>Загрузите прошлый отчёт, чтобы найти повторные пункты со статусом «Выполнено», «Завершено», «Исполнено» или «Закрыто». Сравнение идёт по ID либо по точному названию без учёта регистра и знаков препинания. Для таблиц желательно использовать отдельные столбцы «ID», «Задача» и «Статус».</p>
       <h3>Область проверки</h3>
-      <p>Инструмент читает редактируемый текст слайдов и таблиц. Текст на изображениях, в диаграммах, SmartArt и заметках PowerPoint требует ручной проверки.</p>
+      <p>Инструмент читает редактируемый текст слайдов и таблиц. Последний слайд каждой презентации пропускается. Текст на изображениях, в диаграммах, SmartArt и заметках PowerPoint требует ручной проверки.</p>
     </div>
     <form class="dialog-actions" method="dialog"><button class="button button-primary">Готово</button></form>
   </dialog>
@@ -921,8 +921,10 @@ dialog::backdrop { background: #17132675; }
     const [year, month, day] = reportDate.split('-').map(Number);
     const limit = dateValue(year, month, day);
     if (limit === null) throw new Error('Укажите корректную дату отчёта.');
-    const checked = current.map(slide => scanSlide(slide, limit, year));
-    const history = previous?.flatMap(slide => scanSlide(slide, limit, year).items).filter(item => item.state || item.row) || [];
+    const currentSlides = current.slice(0, -1);
+    const previousSlides = previous?.slice(0, -1);
+    const checked = currentSlides.map(slide => scanSlide(slide, limit, year));
+    const history = previousSlides?.flatMap(slide => scanSlide(slide, limit, year).items).filter(item => item.state || item.row) || [];
     const byId = indexItems(history, 'id');
     const byTitle = indexItems(history, 'key');
     const findings = checked.flatMap(slide => slide.findings);
@@ -936,7 +938,7 @@ dialog::backdrop { background: #17132675; }
         if (!match || repeated.has(identity)) continue;
         repeated.add(identity);
         findings.push({
-          type: 'repeat', slide: item.slide, slideTitle: current[index].title, subject: item.title,
+          type: 'repeat', slide: item.slide, slideTitle: currentSlides[index].title, subject: item.title,
           source: item.source, excerpt: item.excerpt, previous: match.item, method: match.method
         });
       }
@@ -944,11 +946,11 @@ dialog::backdrop { background: #17132675; }
     findings.sort((a, b) => a.slide - b.slide);
     return {
       findings,
-      slides: current.length,
+      slides: currentSlides.length,
       datesChecked: checked.reduce((count, slide) => count + slide.datesChecked, 0),
-      textless: current.filter((slide, i) => !checked[i].textFound).map(slide => slide.number),
+      textless: currentSlides.filter((slide, i) => !checked[i].textFound).map(slide => slide.number),
       completed: history.filter(item => item.state === 'done').length,
-      previousSlides: previous?.length || 0
+      previousSlides: previousSlides?.length ?? null
     };
   }
 
@@ -981,7 +983,8 @@ dialog::backdrop { background: #17132675; }
           ['ИТ-121', 'Проверка журналов событий', 'На согласовании', '12.11.2026']
         ]),
         slide(3, 'Следующие шаги', ['Тестирование интеграции запланировано на 20 ноября 2026 года.']),
-        slide(4, 'Сроки подготовки', ['Дата отправки материалов: 31.11.2026'])
+        slide(4, 'Сроки подготовки', ['Дата отправки материалов: 31.11.2026']),
+        slide(5, 'Спасибо за внимание', ['Вопросы и обсуждение'])
       ]
     },
     previous: {
@@ -992,7 +995,8 @@ dialog::backdrop { background: #17132675; }
           ['ИТ-104', 'Настройка резервного копирования', 'В работе', '10.11.2026'],
           ['ИТ-112', 'Согласование доступа к порталу', 'Выполнено', '05.11.2026'],
           ['ИТ-117', 'Подготовка инструкции', 'Выполнено', '04.11.2026']
-        ])
+        ]),
+        slide(3, 'Спасибо за внимание', ['Вопросы и обсуждение'])
       ]
     }
   };
@@ -1322,16 +1326,24 @@ dialog::backdrop { background: #17132675; }
     const repeats = result.findings.filter(item => item.type === 'repeat').length;
     const invalid = result.findings.filter(item => item.type === 'invalid').length;
     stats.append(
-      stat(result.slides, 'Слайды', 'slides', 'blue'),
+      stat(result.slides, 'Проверено слайдов', 'slides', 'blue'),
       stat(critical, labels.date.filter, labels.date.icon, labels.date.color),
       stat(repeats, 'Повторные пункты', 'repeat', 'purple'),
       stat(invalid, labels.invalid.filter, labels.invalid.icon, labels.invalid.color)
     );
     parent.replaceChildren(stats);
+    if (!result.slides) {
+      parent.append(notice('В текущем отчёте один слайд. По правилу последний слайд пропускается.'));
+      return;
+    }
     const datesText = 'Распознано дат: ' + result.datesChecked + '. ';
-    let comparison = 'Сравнение пропущено: прошлый отчёт не загружен.';
-    if (result.previousSlides) comparison = 'Прошлый отчёт: слайдов ' + result.previousSlides + ', выполненных пунктов ' + result.completed + '.';
-    parent.append(notice(datesText + comparison));
+    let comparison = 'Для сравнения можно загрузить прошлый отчёт.';
+    if (result.previousSlides === 0) {
+      comparison = 'В прошлом отчёте один слайд, поэтому сравнение пропущено.';
+    } else if (result.previousSlides !== null) {
+      comparison = 'В прошлом отчёте проверено слайдов: ' + result.previousSlides + '. Выполненных пунктов: ' + result.completed + '.';
+    }
+    parent.append(notice('Последний слайд каждой презентации пропущен. ' + datesText + comparison));
     if (result.textless.length) {
       const slideList = result.textless.slice(0, 20).join(', ') + (result.textless.length > 20 ? ' и ещё ' + (result.textless.length - 20) : '');
       parent.append(notice('Не найден редактируемый текст на слайдах: ' + slideList + '. Проверьте эти слайды вручную.', 'warning'));

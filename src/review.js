@@ -224,8 +224,10 @@
     const [year, month, day] = reportDate.split('-').map(Number);
     const limit = dateValue(year, month, day);
     if (limit === null) throw new Error('Укажите корректную дату отчёта.');
-    const checked = current.map(slide => scanSlide(slide, limit, year));
-    const history = previous?.flatMap(slide => scanSlide(slide, limit, year).items).filter(item => item.state || item.row) || [];
+    const currentSlides = current.slice(0, -1);
+    const previousSlides = previous?.slice(0, -1);
+    const checked = currentSlides.map(slide => scanSlide(slide, limit, year));
+    const history = previousSlides?.flatMap(slide => scanSlide(slide, limit, year).items).filter(item => item.state || item.row) || [];
     const byId = indexItems(history, 'id');
     const byTitle = indexItems(history, 'key');
     const findings = checked.flatMap(slide => slide.findings);
@@ -239,7 +241,7 @@
         if (!match || repeated.has(identity)) continue;
         repeated.add(identity);
         findings.push({
-          type: 'repeat', slide: item.slide, slideTitle: current[index].title, subject: item.title,
+          type: 'repeat', slide: item.slide, slideTitle: currentSlides[index].title, subject: item.title,
           source: item.source, excerpt: item.excerpt, previous: match.item, method: match.method
         });
       }
@@ -247,11 +249,11 @@
     findings.sort((a, b) => a.slide - b.slide);
     return {
       findings,
-      slides: current.length,
+      slides: currentSlides.length,
       datesChecked: checked.reduce((count, slide) => count + slide.datesChecked, 0),
-      textless: current.filter((slide, i) => !checked[i].textFound).map(slide => slide.number),
+      textless: currentSlides.filter((slide, i) => !checked[i].textFound).map(slide => slide.number),
       completed: history.filter(item => item.state === 'done').length,
-      previousSlides: previous?.length || 0
+      previousSlides: previousSlides?.length ?? null
     };
   }
 
